@@ -7,7 +7,6 @@ export default defineEventHandler(async (event) => {
     if (!apiKey) return { success: false, error: 'GEMINI_API_KEY not set' };
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-001' });
 
     // 構成をテキスト化
     const outlineText = outline.sections
@@ -48,10 +47,21 @@ ${knowhow}
 (ここにメタディスクリプション)
 `;
 
-    try {
+    async function generateWithModel(modelName: string) {
+        const model = genAI.getGenerativeModel({ model: modelName });
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        const text = response.text();
+        return response.text();
+    }
+
+    try {
+        let text = '';
+        try {
+            text = await generateWithModel('gemini-1.5-flash');
+        } catch (e: any) {
+            console.warn('gemini-1.5-flash failed, trying gemini-pro', e.message);
+            text = await generateWithModel('gemini-pro');
+        }
 
         // 本文とメタディスクリプションの分離
         const parts = text.split('---');
@@ -67,6 +77,6 @@ ${knowhow}
             }
         };
     } catch (e: any) {
-        return { success: false, error: e.message };
+        return { success: false, error: e.message || 'Generation failed' };
     }
 });

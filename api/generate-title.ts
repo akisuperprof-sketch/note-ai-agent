@@ -7,7 +7,6 @@ export default defineEventHandler(async (event) => {
   if (!apiKey) return { success: false, error: 'GEMINI_API_KEY not set' };
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-001' });
 
   const prompt = `
 あなたはnote記事のタイトル作成の専門家です。
@@ -37,15 +36,28 @@ ${knowhow}
 }
 `;
 
-  try {
+  async function generateWithModel(modelName: string) {
+    const model = genAI.getGenerativeModel({ model: modelName });
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const text = response.text();
+    return response.text();
+  }
+
+  try {
+    let text = '';
+    try {
+      text = await generateWithModel('gemini-1.5-flash');
+    } catch (e: any) {
+      console.warn('gemini-1.5-flash failed, trying gemini-pro', e.message);
+      // Fallback to gemini-pro if 1.5-flash fails (e.g. 404 Not Found)
+      text = await generateWithModel('gemini-pro');
+    }
+
     // JSON部分だけ抽出（Markdownコードブロック除去）
-    const jsonString = text.replace(/```json\n|\n```/g, '').trim();
+    const jsonString = text.replace(/```json\n?|\n?```/g, '').trim();
     const parsed = JSON.parse(jsonString);
     return { success: true, titles: parsed.titles };
   } catch (e: any) {
-    return { success: false, error: e.message };
+    return { success: false, error: e.message || 'Generation failed' };
   }
 });
