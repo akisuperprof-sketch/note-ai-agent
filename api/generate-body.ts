@@ -2,7 +2,7 @@ import { defineEventHandler, readBody } from 'h3';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default defineEventHandler(async (event) => {
-    const { knowhow, selectedTitle, outline, settings } = await readBody(event) as any;
+    const { knowhow, selectedTitle, outline, settings, strategy } = await readBody(event) as any;
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return { success: false, error: 'GEMINI_API_KEY not set' };
 
@@ -27,11 +27,20 @@ ${outlineText}
 【元となるノウハウ】
 ${knowhow}
 
+【戦略企画（わど式）】
+- ターゲット: ${strategy?.target || '指定なし'}
+- 記事コンセプト: ${strategy?.concept || '指定なし'}
+- 記事の強み（差別化）: ${strategy?.strength || '指定なし'}
+- その他の指示: ${strategy?.otherInstructions || '指定なし'}
+
 【執筆ルール】
-- 指定された構成に従って書いてください。
-- 文体: ${settings?.style === 'polite' ? 'ですます調（親しみやすく丁寧）' : settings?.style === 'formal' ? 'である調（断定・簡潔）' : 'フレンドリーな口語調'}
-- マークダウン形式で出力してください。
-- 記事の最後には、SEO用のメタディスクリプション（120文字程度）を「---」で区切って追記してください。
+1. 指定された構成案に見出し構造を厳密に従ってください。
+2. 「${strategy?.target || 'ターゲット'}」に向けて、専門用語を適切に噛み砕きながら分かりやすく解説してください。
+3. 「${strategy?.concept || '記事コンセプト'}」を意識し、独自の視点や強みを盛り込んでください。
+4. 文体: ${settings?.style === 'polite' ? 'ですます調（親しみやすく丁寧）' : settings?.style === 'formal' ? 'である調（断定・簡潔）' : 'フレンドリーな口語調'}
+5. マークダウン形式で出力してください。見出しは #, ##, ### を使用してください。
+6. リード文（導入）では、読者の共感を呼び、記事を読むメリットを提示してください。
+7. **記事の最後には、SEO用のメタディスクリプション（120文字程度）を「---」で区切って追記してください。**
 
 出力形式:
 (ここにマークダウン形式の本文)

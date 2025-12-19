@@ -8,13 +8,13 @@ export function KnowhowInput() {
         <div className="space-y-3">
             <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-primary-500 text-white text-sm font-bold flex items-center justify-center">
+                    <span className="flex items-center justify-center w-6 h-6 rounded bg-blue-600 text-white text-sm font-bold">
                         1
                     </span>
-                    <span className="font-medium text-gray-800">ノウハウ・一次情報を入力</span>
+                    <span className="font-bold text-gray-100">ノウハウ・一次情報を入力</span>
                 </label>
                 {articleData.knowhow && (
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-400">
                         {articleData.knowhow.length.toLocaleString()}文字
                     </span>
                 )}

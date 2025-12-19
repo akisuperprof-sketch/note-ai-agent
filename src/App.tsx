@@ -76,7 +76,7 @@ function ArticleGenerator() {
 
     setIsGenerating(true);
     try {
-      const res = await api.generateOutline({ knowhow, selectedTitle, settings });
+      const res = await api.generateOutline({ knowhow, selectedTitle, settings, strategy });
       if (res.success && res.outline?.sections) {
         setOutline(res.outline.sections);
         setCurrentStage('outline');
@@ -103,7 +103,7 @@ function ArticleGenerator() {
 
     setIsGenerating(true);
     try {
-      const res = await api.generateBody({ knowhow, selectedTitle, outline, settings });
+      const res = await api.generateBody({ knowhow, selectedTitle, outline, settings, strategy });
       if (res.success && res.body) {
         setBody(res.body.markdown, res.body.metaDescription);
         setCurrentStage('body');
@@ -184,13 +184,13 @@ function ArticleGenerator() {
                 onChange={(e) => setIsStepMode(e.target.checked)}
                 className="sr-only"
               />
-              <div className={`w-12 h-6 rounded-full transition-colors ${isStepMode ? 'bg-primary-500' : 'bg-gray-300'
+              <div className={`w-12 h-6 rounded-full transition-colors ${isStepMode ? 'bg-primary-500' : 'bg-gray-600'
                 }`}>
                 <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${isStepMode ? 'translate-x-7' : 'translate-x-1'
                   }`} />
               </div>
             </div>
-            <span className="font-medium text-gray-800">段階的制作モード</span>
+            <span className="font-medium text-gray-200">段階的制作モード</span>
           </label>
         </div>
 
@@ -228,11 +228,11 @@ function ArticleGenerator() {
 
           {/* アクションボタン */}
           {currentStage !== 'body' && (
-            <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+            <div className="flex items-center justify-between pt-4 border-t border-gray-700">
               {(generatedTitles.length > 0 || outline.length > 0 || body) && (
                 <button
                   onClick={handleReset}
-                  className="flex items-center gap-1.5 text-gray-500 hover:text-red-500 transition-colors"
+                  className="flex items-center gap-1.5 text-gray-400 hover:text-red-400 transition-colors"
                 >
                   <RotateCcw className="w-4 h-4" />
                   リセット

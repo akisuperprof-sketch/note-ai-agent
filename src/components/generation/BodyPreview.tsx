@@ -1,13 +1,21 @@
 import { useArticle } from '../../contexts/ArticleContext';
 import ReactMarkdown from 'react-markdown';
-import { Copy, Download, Check, FileText } from 'lucide-react';
-import { useState } from 'react';
+import { Copy, Download, Check, FileText, BarChart2, Eye, FileEdit } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export function BodyPreview() {
     const { articleData } = useArticle();
     const { body, metaDescription, selectedTitle } = articleData;
     const [copied, setCopied] = useState(false);
-    const [viewMode, setViewMode] = useState<'preview' | 'markdown'>('preview');
+    const [activeTab, setActiveTab] = useState<'result' | 'preview' | 'score'>('result');
+
+    // Show copy success state for 3 seconds
+    useEffect(() => {
+        if (copied) {
+            const timer = setTimeout(() => setCopied(false), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [copied]);
 
     if (!body) {
         return (
@@ -22,7 +30,6 @@ export function BodyPreview() {
         try {
             await navigator.clipboard.writeText(body);
             setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy:', err);
         }
@@ -41,84 +48,180 @@ export function BodyPreview() {
     };
 
     const wordCount = body.length;
+    // Mock score for now - in a real app this might come from the API
+    const qualityScore = 96;
 
     return (
-        <div className="space-y-6">
-            {/* メタディスクリプション */}
-            {metaDescription && (
-                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                        <FileText className="w-3 h-3" />
-                        メタディスクリプション
-                    </p>
-                    <p className="text-sm text-gray-700">{metaDescription}</p>
+        <div className="space-y-8 animate-fade-in">
+            {/* Success Hero Section */}
+            <div className="text-center space-y-4 py-6">
+                <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/30">
+                    <Check className="w-8 h-8 text-white" strokeWidth={3} />
                 </div>
-            )}
-
-            {/* ツールバー */}
-            <div className="flex items-center justify-between flex-wrap gap-4">
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setViewMode('preview')}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${viewMode === 'preview'
-                                ? 'bg-primary-100 text-primary-700'
-                                : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                    >
-                        プレビュー
-                    </button>
-                    <button
-                        onClick={() => setViewMode('markdown')}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${viewMode === 'markdown'
-                                ? 'bg-primary-100 text-primary-700'
-                                : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                    >
-                        Markdown
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500">
-                        {wordCount.toLocaleString()}文字
-                    </span>
-                    <button
-                        onClick={handleCopy}
-                        className="btn-secondary flex items-center gap-1.5"
-                    >
-                        {copied ? (
-                            <>
-                                <Check className="w-4 h-4 text-green-600" />
-                                コピー済み
-                            </>
-                        ) : (
-                            <>
-                                <Copy className="w-4 h-4" />
-                                コピー
-                            </>
-                        )}
-                    </button>
-                    <button
-                        onClick={handleDownload}
-                        className="btn-secondary flex items-center gap-1.5"
-                    >
-                        <Download className="w-4 h-4" />
-                        ダウンロード
-                    </button>
+                <div>
+                    <h2 className="text-2xl font-bold text-emerald-400 mb-2">生成完了！</h2>
+                    <p className="text-gray-400">{wordCount.toLocaleString()}文字の記事が完成しました</p>
                 </div>
             </div>
 
-            {/* コンテンツ */}
-            <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
-                {viewMode === 'preview' ? (
-                    <div className="p-6 md:p-8 markdown-preview">
-                        <ReactMarkdown>{body}</ReactMarkdown>
+            {/* Big Action Button */}
+            <button
+                onClick={handleCopy}
+                className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 transform active:scale-[0.98] shadow-xl ${copied
+                        ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-emerald-900/50'
+                        : 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white shadow-purple-900/40 hover:opacity-90'
+                    }`}
+            >
+                <div className="flex items-center justify-center gap-2">
+                    {copied ? (
+                        <>
+                            <Check className="w-6 h-6" />
+                            コピーしました！
+                        </>
+                    ) : (
+                        <>
+                            <Copy className="w-6 h-6" />
+                            記事をコピーする
+                        </>
+                    )}
+                </div>
+            </button>
+
+            {/* Tabs */}
+            <div className="flex bg-[#0f172a] p-1 rounded-xl">
+                <button
+                    onClick={() => setActiveTab('result')}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'result'
+                            ? 'bg-gray-800 text-white shadow-sm'
+                            : 'text-gray-500 hover:text-gray-300'
+                        }`}
+                >
+                    <FileEdit className="w-4 h-4" />
+                    生成結果
+                </button>
+                <button
+                    onClick={() => setActiveTab('preview')}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'preview'
+                            ? 'bg-gray-800 text-white shadow-sm'
+                            : 'text-gray-500 hover:text-gray-300'
+                        }`}
+                >
+                    <Eye className="w-4 h-4" />
+                    noteプレビュー
+                </button>
+                <button
+                    onClick={() => setActiveTab('score')}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'score'
+                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm'
+                            : 'text-gray-500 hover:text-gray-300'
+                        }`}
+                >
+                    <BarChart2 className="w-4 h-4" />
+                    品質スコア
+                </button>
+            </div>
+
+            {/* Tab Contents */}
+            <div className="min-h-[400px]">
+                {activeTab === 'result' && (
+                    <div className="space-y-4">
+                        {metaDescription && (
+                            <div className="p-4 bg-[#0f172a] rounded-xl border border-gray-800">
+                                <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+                                    <FileText className="w-3 h-3" />
+                                    メタディスクリプション
+                                </p>
+                                <p className="text-sm text-gray-300">{metaDescription}</p>
+                            </div>
+                        )}
+                        <div className="bg-[#1e293b]/50 rounded-xl border border-gray-700/50 p-6 overflow-hidden">
+                            <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono">
+                                {body}
+                            </pre>
+                        </div>
                     </div>
-                ) : (
-                    <pre className="p-6 text-sm overflow-x-auto bg-gray-900 text-gray-100">
-                        <code>{body}</code>
-                    </pre>
                 )}
+
+                {activeTab === 'preview' && (
+                    <div className="bg-white text-gray-900 rounded-xl p-8 shadow-xl">
+                        <div className="prose max-w-none">
+                            <h1 className="text-3xl font-bold mb-8">{selectedTitle}</h1>
+                            <ReactMarkdown>{body}</ReactMarkdown>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'score' && (
+                    <div className="space-y-6">
+                        {/* Score Card */}
+                        <div className="bg-gradient-to-br from-blue-900/50 to-purple-900/50 rounded-2xl p-8 text-center border border-white/10 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-grid-white/[0.05] bg-[length:16px_16px]" />
+                            <h3 className="text-gray-300 mb-6 relative z-10">記事品質スコア</h3>
+                            <div className="relative w-48 h-48 mx-auto flex items-center justify-center">
+                                {/* Simple CSS Gauge Circle */}
+                                <svg className="w-full h-full transform -rotate-90">
+                                    <circle
+                                        cx="96"
+                                        cy="96"
+                                        r="88"
+                                        fill="none"
+                                        stroke="#1e293b"
+                                        strokeWidth="12"
+                                    />
+                                    <circle
+                                        cx="96"
+                                        cy="96"
+                                        r="88"
+                                        fill="none"
+                                        stroke="url(#score-gradient)"
+                                        strokeWidth="12"
+                                        strokeDasharray={`${2 * Math.PI * 88}`}
+                                        strokeDashoffset={`${2 * Math.PI * 88 * (1 - qualityScore / 100)}`}
+                                        strokeLinecap="round"
+                                        className="transition-all duration-1000 ease-out"
+                                    />
+                                    <defs>
+                                        <linearGradient id="score-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stopColor="#3b82f6" />
+                                            <stop offset="100%" stopColor="#8b5cf6" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span className="text-5xl font-bold text-white mb-1">{qualityScore}</span>
+                                    <span className="text-sm text-gray-400">/ 100</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="p-4 bg-[#0f172a] rounded-xl border border-gray-800">
+                                <p className="text-xs text-gray-500 mb-1">論理性</p>
+                                <div className="flex items-end gap-2">
+                                    <span className="text-xl font-bold text-blue-400">S</span>
+                                    <span className="text-xs text-gray-400 mb-1">非常に高い</span>
+                                </div>
+                            </div>
+                            <div className="p-4 bg-[#0f172a] rounded-xl border border-gray-800">
+                                <p className="text-xs text-gray-500 mb-1">SEO強度</p>
+                                <div className="flex items-end gap-2">
+                                    <span className="text-xl font-bold text-purple-400">A+</span>
+                                    <span className="text-xs text-gray-400 mb-1">上位表示が期待できる</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <div className="flex justify-end pt-4">
+                <button
+                    onClick={handleDownload}
+                    className="text-sm text-gray-500 hover:text-white flex items-center gap-2 transition-colors"
+                >
+                    <Download className="w-4 h-4" />
+                    Markdownをダウンロード
+                </button>
             </div>
         </div>
     );

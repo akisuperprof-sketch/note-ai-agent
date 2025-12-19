@@ -81,7 +81,7 @@ export const defaultArticleData: ArticleData = {
     body: '',
     metaDescription: '',
     currentStage: 'input',
-    isStepMode: true,
+    isStepMode: false,
     isGenerating: false,
 };
 

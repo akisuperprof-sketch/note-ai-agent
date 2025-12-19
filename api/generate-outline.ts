@@ -2,7 +2,7 @@ import { defineEventHandler, readBody } from 'h3';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default defineEventHandler(async (event) => {
-  const { knowhow, selectedTitle, settings } = await readBody(event) as any;
+  const { knowhow, selectedTitle, settings, strategy } = await readBody(event) as any;
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return { success: false, error: 'GEMINI_API_KEY not set' };
 
@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
 
   const prompt = `
 あなたはプロのWebライター、編集者です。
-以下のタイトルとノウハウを元に、note記事の構成案（見出し構成）を作成してください。
+以下のタイトルと情報を元に、note記事の構成案（見出し構成）を作成してください。
 
 【タイトル】
 ${selectedTitle}
@@ -19,12 +19,23 @@ ${selectedTitle}
 【ノウハウ・一次情報】
 ${knowhow}
 
-【設定】
+【戦略企画（わど式）】
+- ターゲット: ${strategy?.target || '指定なし'}
+- 記事コンセプト: ${strategy?.concept || '指定なし'}
+- 記事の強み（差別化）: ${strategy?.strength || '指定なし'}
+- 記事構成の指示: ${strategy?.structure || '指定なし'}
+- その他の指示: ${strategy?.otherInstructions || '指定なし'}
+
+【基本設定】
 - 文字数目安: ${settings?.wordCount}文字
 - 読者層: ${settings?.audience}
 
-論理的で読みやすく、読者の満足度が高まる構成にしてください。
-セクション（大見出し）は5〜10個程度を目安にしてください。
+■作成ルール
+1. 「${strategy?.target || 'ターゲット'}」の悩みを解決し、読者が行動したくなる流れを作ってください。
+2. 「${strategy?.concept || '記事コンセプト'}」を軸に、独自の強みを活かした構成にしてください。
+3. 指定された「記事構成の指示」があれば、それを優先的に反映してください。
+4. 論理的で読みやすく、読者の満足度が高まる構成にしてください。
+5. セクション（大見出し）は5〜10個程度を目安にしてください。
 
 出力は以下のJSON形式のみで行ってください。
 {
