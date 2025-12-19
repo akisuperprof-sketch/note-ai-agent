@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     if (!apiKey) return { success: false, error: 'GEMINI_API_KEY not set' };
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     // 構成をテキスト化
     const outlineText = outline.sections
