@@ -46,27 +46,37 @@ ${knowhow}
     return response.text();
   }
 
-  try {
-    let text = '';
-    try {
-      // 1. Try gemini-1.5-flash (Latest fast model)
-      text = await generateWithModel('gemini-1.5-flash');
-    } catch (e: any) {
-      console.warn('gemini-1.5-flash failed, trying gemini-1.5-pro', e.message);
-      try {
-        // 2. Try gemini-1.5-pro (Higher intelligence)
-        text = await generateWithModel('gemini-1.5-pro');
-      } catch (fallbackError: any) {
-        console.warn('gemini-1.5-pro failed, trying gemini-pro', fallbackError.message);
-        try {
-          // 3. Last Resort: gemini-pro (Legacy v1.0, most stable availability)
-          text = await generateWithModel('gemini-pro');
-        } catch (lastResortError: any) {
-          throw new Error(`All models failed. Flash: ${e.message} / Pro: ${fallbackError.message} / Legacy: ${lastResortError.message}`);
-        }
-      }
-    }
+  // List of models to try in order of preference
+  const modelsToTry = [
+    'gemini-1.5-flash',
+    'gemini-1.5-flash-001',
+    'gemini-1.5-flash-002',
+    'gemini-1.5-pro',
+    'gemini-1.5-pro-001',
+    'gemini-1.0-pro',
+    'gemini-pro'
+  ];
 
+  let lastError = null;
+  let text = '';
+
+  for (const modelName of modelsToTry) {
+    try {
+      console.log(`Trying model: ${modelName}`);
+      text = await generateWithModel(modelName);
+      if (text) break; // Success!
+    } catch (e: any) {
+      console.warn(`Model ${modelName} failed:`, e.message);
+      lastError = e;
+      // Continue to next model
+    }
+  }
+
+  if (!text && lastError) {
+    throw new Error(`All models failed. Last error: ${lastError.message}. Accessing: v1beta API.`);
+  }
+
+  try {
     // JSON部分だけ抽出（Markdownコードブロック除去）
     const jsonString = text.replace(/```json\n?|\n?```/g, '').trim();
     const parsed = JSON.parse(jsonString);
