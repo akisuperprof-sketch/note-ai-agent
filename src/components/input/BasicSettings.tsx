@@ -1,7 +1,7 @@
 import { useArticle } from '../../contexts/ArticleContext';
 import { Accordion } from '../common/Accordion';
 import { Settings, ImageIcon } from 'lucide-react';
-import { styleLabels, audienceLabels, wordCountOptions, WritingStyle, AudienceLevel } from '../../types';
+import { styleLabels, audienceLabels, wordCountOptions, type WritingStyle, type AudienceLevel } from '../../types';
 
 export function BasicSettings() {
     const { articleData, updateSettings } = useArticle();

@@ -1,14 +1,14 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, type ReactNode } from 'react';
 import {
-    ArticleData,
-    GenerationStage,
-    StrategySettings,
-    BasicSettings,
-    OutlineSection,
+    type ArticleData,
+    type GenerationStage,
+    type StrategySettings,
+    type BasicSettings,
+    type OutlineSection,
     defaultArticleData,
 } from '../types';
 
-interface ArticleContextType {
+export interface ArticleContextType {
     articleData: ArticleData;
 
     // 入力更新

@@ -1,4 +1,4 @@
-import { GenerationStage } from '../../types';
+import type { GenerationStage } from '../../types';
 import { FileText, Lightbulb, List, PenTool } from 'lucide-react';
 
 interface TabNavProps {

@@ -1,7 +1,7 @@
 import { useArticle } from '../../contexts/ArticleContext';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { OutlineSection } from '../../types';
+import type { OutlineSection } from '../../types';
 
 export function OutlineEditor() {
     const { articleData, setOutline } = useArticle();
