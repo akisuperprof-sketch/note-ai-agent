@@ -46,11 +46,17 @@ ${knowhow}
   try {
     let text = '';
     try {
-      text = await generateWithModel('gemini-1.5-flash');
+      // Primary model: gemini-1.5-flash-001 (Specific version)
+      text = await generateWithModel('gemini-1.5-flash-001');
     } catch (e: any) {
-      console.warn('gemini-1.5-flash failed, trying gemini-pro', e.message);
-      // Fallback to gemini-pro if 1.5-flash fails (e.g. 404 Not Found)
-      text = await generateWithModel('gemini-pro');
+      console.warn('gemini-1.5-flash-001 failed, trying gemini-1.5-pro-001', e.message);
+      // Fallback: gemini-1.5-pro-001 (More robust than gemini-pro)
+      try {
+        text = await generateWithModel('gemini-1.5-pro-001');
+      } catch (fallbackError: any) {
+        // If both fail, throw the ORIGINAL error to understand why the primary failed
+        throw new Error(`Primary(Flash) Error: ${e.message} / Fallback(Pro) Error: ${fallbackError.message}`);
+      }
     }
 
     // JSON部分だけ抽出（Markdownコードブロック除去）

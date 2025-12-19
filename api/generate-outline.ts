@@ -61,10 +61,14 @@ level 1 はH2（大見出し）、level 2 はH3（小見出し）に相当しま
   try {
     let text = '';
     try {
-      text = await generateWithModel('gemini-1.5-flash');
+      text = await generateWithModel('gemini-1.5-flash-001');
     } catch (e: any) {
-      console.warn('gemini-1.5-flash failed, trying gemini-pro', e.message);
-      text = await generateWithModel('gemini-pro');
+      console.warn('gemini-1.5-flash-001 failed, trying gemini-1.5-pro-001', e.message);
+      try {
+        text = await generateWithModel('gemini-1.5-pro-001');
+      } catch (fallbackError: any) {
+        throw new Error(`Primary(Flash) Error: ${e.message} / Fallback(Pro) Error: ${fallbackError.message}`);
+      }
     }
 
     const jsonString = text.replace(/```json\n?|\n?```/g, '').trim();
