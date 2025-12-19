@@ -9,8 +9,9 @@ import { BasicSettings } from './components/input/BasicSettings';
 import { TitleSelector } from './components/generation/TitleSelector';
 import { OutlineEditor } from './components/generation/OutlineEditor';
 import { BodyPreview } from './components/generation/BodyPreview';
-import { GenerationStage } from './types';
+import type { GenerationStage } from './types';
 import { Sparkles, ArrowRight, RotateCcw } from 'lucide-react';
+import { api } from './lib/api';
 
 function ArticleGenerator() {
   const {
@@ -19,7 +20,6 @@ function ArticleGenerator() {
     setIsStepMode,
     setIsGenerating,
     setGeneratedTitles,
-    setSelectedTitle,
     setOutline,
     setBody,
     resetFromStage,
@@ -30,6 +30,8 @@ function ArticleGenerator() {
     isStepMode,
     isGenerating,
     knowhow,
+    strategy,
+    settings,
     generatedTitles,
     selectedTitle,
     outline,
@@ -38,7 +40,7 @@ function ArticleGenerator() {
 
   const [completedStages, setCompletedStages] = useState<GenerationStage[]>(['input']);
 
-  // ダミー生成関数（後でAPI連携）
+  // API呼び出し
   const generateTitles = async () => {
     if (!knowhow.trim()) {
       alert('ノウハウを入力してください');
@@ -46,23 +48,24 @@ function ArticleGenerator() {
     }
 
     setIsGenerating(true);
-
-    // ダミーの遅延
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // ダミーのタイトル生成
-    const dummyTitles = [
-      `【完全ガイド】${knowhow.slice(0, 20)}...で成果を出す方法`,
-      `初心者でもできる！${knowhow.slice(0, 15)}...の実践テクニック`,
-      `${knowhow.slice(0, 20)}...を1週間でマスターするロードマップ`,
-      `プロが教える${knowhow.slice(0, 15)}...の極意【2025年版】`,
-      `なぜ${knowhow.slice(0, 15)}...が重要なのか？成功者の共通点`,
-    ];
-
-    setGeneratedTitles(dummyTitles);
-    setIsGenerating(false);
-    setCurrentStage('title');
-    setCompletedStages(prev => [...new Set([...prev, 'title'])]);
+    try {
+      const res = await api.generateTitle({ knowhow, strategy, settings });
+      if (res.success && res.titles) {
+        setGeneratedTitles(res.titles);
+        setCurrentStage('title');
+        setCompletedStages(prev => {
+          const next = new Set([...prev, 'title']);
+          return Array.from(next) as GenerationStage[];
+        });
+      } else {
+        alert('タイトルの生成に失敗しました: ' + (res.error || '不明なエラー'));
+      }
+    } catch (error) {
+      alert('エラーが発生しました');
+      console.error(error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const generateOutline = async () => {
@@ -72,25 +75,24 @@ function ArticleGenerator() {
     }
 
     setIsGenerating(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // ダミーの構成生成
-    const dummyOutline = [
-      { level: 1, heading: 'はじめに', summary: '記事の導入と読者への約束' },
-      { level: 1, heading: 'なぜこれが重要なのか', summary: '背景と重要性の説明' },
-      { level: 1, heading: '具体的な方法 Step 1', summary: '最初のステップの詳細' },
-      { level: 2, heading: 'ポイント1', summary: '詳細なポイント' },
-      { level: 2, heading: 'ポイント2', summary: '詳細なポイント' },
-      { level: 1, heading: '具体的な方法 Step 2', summary: '次のステップの詳細' },
-      { level: 1, heading: '具体的な方法 Step 3', summary: '最後のステップの詳細' },
-      { level: 1, heading: 'よくある質問', summary: 'FAQ形式で疑問に回答' },
-      { level: 1, heading: 'まとめ', summary: '記事の総括とCTA' },
-    ];
-
-    setOutline(dummyOutline);
-    setIsGenerating(false);
-    setCurrentStage('outline');
-    setCompletedStages(prev => [...new Set([...prev, 'outline'])]);
+    try {
+      const res = await api.generateOutline({ knowhow, selectedTitle, settings });
+      if (res.success && res.outline?.sections) {
+        setOutline(res.outline.sections);
+        setCurrentStage('outline');
+        setCompletedStages(prev => {
+          const next = new Set([...prev, 'outline']);
+          return Array.from(next) as GenerationStage[];
+        });
+      } else {
+        alert('構成の生成に失敗しました: ' + (res.error || '不明なエラー'));
+      }
+    } catch (error) {
+      alert('エラーが発生しました');
+      console.error(error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const generateBody = async () => {
@@ -100,45 +102,24 @@ function ArticleGenerator() {
     }
 
     setIsGenerating(true);
-    await new Promise(resolve => setTimeout(resolve, 3000));
-
-    // ダミーの本文生成
-    const dummyBody = `# ${selectedTitle}
-
-「${knowhow.slice(0, 30)}...」について悩んでいませんか？
-
-この記事では、初心者でも実践できる具体的な方法をお伝えします。
-
-## はじめに
-
-まずは、この記事を読むことで得られることをお約束します。
-
-${outline.map(section => `
-${'#'.repeat(section.level + 1)} ${section.heading}
-
-${section.summary || 'ここに詳細な内容が入ります。'}
-
-具体的なポイントを見ていきましょう。
-
-- ポイント1: 重要な考え方
-- ポイント2: 実践的なテクニック
-- ポイント3: よくある間違いを避ける方法
-
-`).join('\n')}
-
-## まとめ
-
-この記事では、${selectedTitle}について解説しました。
-
-ぜひ今日から実践してみてください！
-`;
-
-    const dummyMetaDescription = `${selectedTitle}の完全ガイド。初心者でも実践できる具体的な方法を、わかりやすく解説します。`;
-
-    setBody(dummyBody, dummyMetaDescription);
-    setIsGenerating(false);
-    setCurrentStage('body');
-    setCompletedStages(prev => [...new Set([...prev, 'body'])]);
+    try {
+      const res = await api.generateBody({ knowhow, selectedTitle, outline, settings });
+      if (res.success && res.body) {
+        setBody(res.body.markdown, res.body.metaDescription);
+        setCurrentStage('body');
+        setCompletedStages(prev => {
+          const next = new Set([...prev, 'body']);
+          return Array.from(next) as GenerationStage[];
+        });
+      } else {
+        alert('本文の生成に失敗しました: ' + (res.error || '不明なエラー'));
+      }
+    } catch (error) {
+      alert('エラーが発生しました');
+      console.error(error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleGenerateClick = () => {
