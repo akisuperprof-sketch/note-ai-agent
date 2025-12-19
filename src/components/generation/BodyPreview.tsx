@@ -28,7 +28,10 @@ export function BodyPreview() {
 
     const handleCopy = async () => {
         try {
-            await navigator.clipboard.writeText(body);
+            const contentToCopy = metaDescription
+                ? `${body}\n\n---\n\n${metaDescription}`
+                : body;
+            await navigator.clipboard.writeText(contentToCopy);
             setCopied(true);
         } catch (err) {
             console.error('Failed to copy:', err);
@@ -36,7 +39,10 @@ export function BodyPreview() {
     };
 
     const handleDownload = () => {
-        const blob = new Blob([body], { type: 'text/markdown' });
+        const contentToDownload = metaDescription
+            ? `${body}\n\n---\n\n${metaDescription}`
+            : body;
+        const blob = new Blob([contentToDownload], { type: 'text/markdown' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;

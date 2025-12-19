@@ -40,6 +40,7 @@ function ArticleGenerator() {
 
   const [completedStages, setCompletedStages] = useState<GenerationStage[]>(['input']);
 
+
   // API呼び出し
   const generateTitles = async () => {
     if (!knowhow.trim()) {
