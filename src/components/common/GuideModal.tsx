@@ -59,9 +59,9 @@ export function GuideModal({ isOpen, onClose }: GuideModalProps) {
                     <div className="bg-gray-800/50 rounded-2xl p-5 flex gap-5 border border-white/5">
                         <div className="flex-shrink-0 w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow shadow-blue-500/20">1</div>
                         <div>
-                            <h3 className="font-bold text-blue-300 mb-1">ノウハウを入力</h3>
+                            <h3 className="font-bold text-blue-300 mb-1">素材（ノウハウ）を準備</h3>
                             <p className="text-sm text-gray-300 leading-relaxed">
-                                マインドマップやメモで整理した<span className="font-bold text-blue-400">あなたの一次情報・ノウハウ</span>をテキストエリアに貼り付けます。
+                                あなたの頭の中にある<span className="font-bold text-blue-400">一次情報やメモ、箇条書き</span>をテキストエリアに貼り付けてください。これが記事の核となります。
                             </p>
                         </div>
                     </div>
@@ -70,9 +70,9 @@ export function GuideModal({ isOpen, onClose }: GuideModalProps) {
                     <div className="bg-gray-800/50 rounded-2xl p-5 flex gap-5 border border-white/5">
                         <div className="flex-shrink-0 w-10 h-10 bg-purple-600 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow shadow-purple-500/20">2</div>
                         <div>
-                            <h3 className="font-bold text-purple-300 mb-1">戦略企画を設定（任意）</h3>
+                            <h3 className="font-bold text-purple-300 mb-1">ターゲットと戦略（任意）</h3>
                             <p className="text-sm text-gray-300 leading-relaxed">
-                                タイトル、ターゲット、差別化ポイントなどを<span className="font-bold text-purple-400">「戦略企画」</span>に入力すると、より狙い通りの記事になります。
+                                誰に何を伝えたいか。<span className="font-bold text-purple-400">「戦略企画」</span>でターゲットやコンセプトを指定すると、より刺さる記事に仕上がります。
                             </p>
                         </div>
                     </div>
@@ -81,10 +81,27 @@ export function GuideModal({ isOpen, onClose }: GuideModalProps) {
                     <div className="bg-gray-800/50 rounded-2xl p-5 flex gap-5 border border-white/5">
                         <div className="flex-shrink-0 w-10 h-10 bg-pink-600 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow shadow-pink-500/20">3</div>
                         <div>
-                            <h3 className="font-bold text-pink-300 mb-1">生成してコピー</h3>
+                            <h3 className="font-bold text-pink-300 mb-1">AIにおまかせ生成</h3>
                             <p className="text-sm text-gray-300 leading-relaxed">
-                                「記事を生成する」ボタンを押して待つだけ。完成したら<span className="font-bold text-pink-400">ワンクリックでコピー</span>してnoteに貼り付けられます。
+                                生成ボタンをクリックして待つだけ。完成した記事は<span className="font-bold text-pink-400">コピーしてnoteにすぐ投稿</span>できる品質で出力されます。
                             </p>
+                        </div>
+                    </div>
+
+                    {/* Hint Section */}
+                    <div className="bg-amber-900/20 rounded-2xl p-4 border border-amber-500/20 mt-2">
+                        <div className="flex items-start gap-4">
+                            <div className="p-2 bg-amber-500/10 rounded-lg flex-shrink-0">
+                                <Lightbulb className="w-5 h-5 text-amber-400" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-amber-400 mb-2 text-sm">活用のヒント</h3>
+                                <ul className="text-xs text-gray-300 space-y-1.5 list-disc list-inside">
+                                    <li><span className="font-semibold text-amber-200">段階的制作モード</span>を使えば、目次を確認しながらこだわって作れます</li>
+                                    <li>生成完了まで<span className="font-semibold text-amber-200">約30〜60秒</span>ほどお待ちください（文章量によります）</li>
+                                    <li>記事の内容に合った<span className="font-semibold text-amber-200">アイキャッチ画像</span>も自動で提案・生成されます</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
