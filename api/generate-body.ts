@@ -3,8 +3,11 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default defineEventHandler(async (event) => {
     const { knowhow, selectedTitle, outline, settings, strategy } = await readBody(event) as any;
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return { success: false, error: 'GEMINI_API_KEY not set' };
+    const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+        const debugKeys = Object.keys(process.env).filter(k => k.toLowerCase().includes('gemini') || k.toLowerCase().includes('api'));
+        return { success: false, error: `GEMINI_API_KEY not set. Found similar keys: ${debugKeys.join(', ')}` };
+    }
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
