@@ -11,7 +11,9 @@ import { OutlineEditor } from './components/generation/OutlineEditor';
 import { BodyPreview } from './components/generation/BodyPreview';
 import type { GenerationStage } from './types';
 import { Sparkles, ArrowRight, RotateCcw } from 'lucide-react';
+import { GuideModal } from './components/common/GuideModal';
 import { api } from './lib/api';
+import { useEffect } from 'react';
 
 function ArticleGenerator() {
   const {
@@ -39,6 +41,14 @@ function ArticleGenerator() {
   } = articleData;
 
   const [completedStages, setCompletedStages] = useState<GenerationStage[]>(['input']);
+  const [showGuide, setShowGuide] = useState(false);
+
+  useEffect(() => {
+    const hasSeen = localStorage.getItem('hasSeenGuide');
+    if (!hasSeen) {
+      setShowGuide(true);
+    }
+  }, []);
 
 
   // API呼び出し
@@ -256,6 +266,9 @@ function ArticleGenerator() {
 
       {/* ローディングオーバーレイ */}
       {isGenerating && <Loading overlay message="AIが生成中です..." />}
+
+      {/* ガイドモーダル */}
+      <GuideModal isOpen={showGuide} onClose={() => setShowGuide(false)} />
     </div>
   );
 }
