@@ -182,7 +182,7 @@ function ArticleGenerator() {
 
   return (
     <div className="min-h-screen flex flex-col items-center">
-      <Header />
+      <Header onShowGuide={() => setShowGuide(true)} />
 
       <main className="w-full max-w-4xl px-4 py-12 flex-grow flex flex-col justify-center">
         {/* 段階的制作モード切り替え */}
