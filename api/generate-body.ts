@@ -2,21 +2,22 @@ import { defineEventHandler, readBody } from 'h3';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default defineEventHandler(async (event) => {
-    const { knowhow, selectedTitle, outline, settings, strategy } = await readBody(event) as any;
-    const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) {
-        const debugKeys = Object.keys(process.env).filter(k => k.toLowerCase().includes('gemini') || k.toLowerCase().includes('api'));
-        return { success: false, error: `GEMINI_API_KEY not set. Found similar keys: ${debugKeys.join(', ')}` };
-    }
+    try {
+        const { knowhow, selectedTitle, outline, settings, strategy } = await readBody(event) as any;
+        const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+        if (!apiKey) {
+            const debugKeys = Object.keys(process.env).filter(k => k.toLowerCase().includes('gemini') || k.toLowerCase().includes('api'));
+            return { success: false, error: `GEMINI_API_KEY not set. Found similar keys: ${debugKeys.join(', ')}` };
+        }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
+        const genAI = new GoogleGenerativeAI(apiKey);
 
-    // 構成をテキスト化
-    const outlineText = outline.sections
-        .map((s: any) => `${'#'.repeat(s.level + 1)} ${s.heading}\n(${s.summary})`)
-        .join('\n\n');
+        // 構成をテキスト化
+        const outlineText = outline.sections
+            .map((s: any) => `${'#'.repeat(s.level + 1)} ${s.heading}\n(${s.summary})`)
+            .join('\n\n');
 
-    const prompt = `
+        const prompt = `
 あなたはプロのWebライターです。
 以下の構成案に基づき、note記事の本文を執筆してください。
 
@@ -51,58 +52,60 @@ ${knowhow}
 (ここにメタディスクリプション)
 `;
 
-    async function generateWithModel(modelName: string) {
-        const model = genAI.getGenerativeModel({ model: modelName });
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        return response.text();
-    }
-
-    // List of models to try in order of preference
-    const modelsToTry = [
-        'gemini-2.0-flash-exp',
-        'gemini-2.0-flash',
-        'gemini-2.0-flash-001',
-        'gemini-1.5-flash',
-        'gemini-1.5-flash-001',
-        'gemini-1.5-flash-002',
-        'gemini-1.5-pro',
-        'gemini-1.5-pro-001',
-        'gemini-1.0-pro',
-        'gemini-pro'
-    ];
-
-    let lastError = null;
-    let text = '';
-
-    for (const modelName of modelsToTry) {
-        try {
-            console.log(`Trying model: ${modelName}`);
-            text = await generateWithModel(modelName);
-            if (text) break; // Success!
-        } catch (e: any) {
-            console.warn(`Model ${modelName} failed:`, e.message);
-            lastError = e;
-            // Continue to next model
+        async function generateWithModel(modelName: string) {
+            const model = genAI.getGenerativeModel({ model: modelName });
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            return response.text();
         }
-    }
 
-    if (!text && lastError) {
-        throw new Error(`All models failed. Last error: ${lastError.message}. Accessing: v1beta API.`);
-    }
+        // List of models to try in order of preference
+        const modelsToTry = [
+            'gemini-2.0-flash-exp',
+            'gemini-2.0-flash',
+            'gemini-2.0-flash-001',
+            'gemini-1.5-flash',
+            'gemini-1.5-flash-001',
+            'gemini-1.5-flash-002',
+            'gemini-1.5-pro',
+            'gemini-1.5-pro-001',
+            'gemini-1.0-pro',
+            'gemini-pro'
+        ];
 
-    // 本文とメタディスクリプションの分離
-    const parts = text.split('---');
-    const markdown = parts[0].trim();
-    const metaDescription = parts.length > 1 ? parts[parts.length - 1].trim() : '';
+        let lastError = null;
+        let text = '';
 
-    return {
-        success: true,
-        body: {
-            markdown: markdown,
-            metaDescription: metaDescription,
-            actualWordCount: markdown.length
+        for (const modelName of modelsToTry) {
+            try {
+                console.log(`Trying model: ${modelName}`);
+                text = await generateWithModel(modelName);
+                if (text) break; // Success!
+            } catch (e: any) {
+                console.warn(`Model ${modelName} failed:`, e.message);
+                lastError = e;
+                // Continue to next model
+            }
         }
-    };
-};
+
+        if (!text && lastError) {
+            throw new Error(`All models failed. Last error: ${lastError.message}. Accessing: v1beta API.`);
+        }
+
+        // 本文とメタディスクリプションの分離
+        const parts = text.split('---');
+        const markdown = parts[0].trim();
+        const metaDescription = parts.length > 1 ? parts[parts.length - 1].trim() : '';
+
+        return {
+            success: true,
+            body: {
+                markdown: markdown,
+                metaDescription: metaDescription,
+                actualWordCount: markdown.length
+            }
+        };
+    } catch (e: any) {
+        return { success: false, error: e.message || 'Generation failed' };
+    }
 });
