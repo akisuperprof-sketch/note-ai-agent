@@ -48,6 +48,9 @@ ${knowhow}
 
   // List of models to try in order of preference
   const modelsToTry = [
+    'gemini-2.0-flash-exp',
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-001',
     'gemini-1.5-flash',
     'gemini-1.5-flash-001',
     'gemini-1.5-flash-002',

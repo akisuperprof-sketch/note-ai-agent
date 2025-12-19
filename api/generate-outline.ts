@@ -63,6 +63,9 @@ level 1 はH2（大見出し）、level 2 はH3（小見出し）に相当しま
 
   // List of models to try in order of preference
   const modelsToTry = [
+    'gemini-2.0-flash-exp',
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-001',
     'gemini-1.5-flash',
     'gemini-1.5-flash-001',
     'gemini-1.5-flash-002',
