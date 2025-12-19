@@ -12,7 +12,7 @@ export function StrategySettings() {
             <Accordion
                 title="戦略企画"
                 icon={<Target className="w-5 h-5 text-emerald-400" />}
-                defaultOpen={true}
+                defaultOpen={false}
             >
                 <div className="space-y-8 mt-6">
                     {/* 2 Title */}

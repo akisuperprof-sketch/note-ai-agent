@@ -72,7 +72,23 @@ export const defaultSettings: BasicSettings = {
 };
 
 export const defaultArticleData: ArticleData = {
-    knowhow: '',
+    knowhow: `Obsidianで作る「第二の脳」構築ロードマップ【1週間完全ガイド】
+Before→After：情報整理に憧れる人が、何から手をつけていいか分からない状況を、7日間の具体的アクションプランで解決して、迷走期間を0にする。
+想定ターゲット：体系的に学びたい真面目な初心者。
+合成要素：ロードマップ ＋ フォルダ構成案 ＋ 習慣化スケジュール。
+差別化：{初心者} × {1日1タスク（スモールステップ）}。
+まとめ軸：時系列（最初の1週間）。
+参照先候補：表B-2, D-1, A-1
+フック案：
+X：Obsidianで「第二の脳」を作りたいけど、挫折した人へ。1日1つ、これだけやってください。7日後には最強の環境が完成します。
+YouTube：インストールから1週間で「第二の脳」を作る。初心者のための完全ロードマップ。
+中身の骨子：
+Day1: インストールと日本語化。
+Day2: フォルダ構成（Inbox/Zettelkasten）。
+Day3: テンプレート作成。
+... Day7: グラフビューを眺める。
+CTA：7日間チェックリスト（PDF/Notion）配布。
+型：構成「Step by Step」、ターゲット「体系化`,
     strategy: defaultStrategy,
     settings: defaultSettings,
     generatedTitles: [],
