@@ -10,7 +10,7 @@ export function StrategySettings() {
         <div className="space-y-6">
             {/* Header for this section is handled by Accordion usually, but here we might want a custom card look */}
             <Accordion
-                title="戦略企画（わど式）"
+                title="戦略企画"
                 icon={<Target className="w-5 h-5 text-emerald-400" />}
                 defaultOpen={true}
             >

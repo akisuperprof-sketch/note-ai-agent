@@ -213,8 +213,8 @@ function ArticleGenerator() {
           {currentStage === 'input' && (
             <>
               <KnowhowInput />
-              <StrategySettings />
               <BasicSettings />
+              <StrategySettings />
             </>
           )}
 

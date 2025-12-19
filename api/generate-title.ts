@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
 【ノウハウ・一次情報】
 ${knowhow}
 
-【戦略企画（わど式）】
+【戦略企画】
 - ターゲット: ${strategy?.target || '指定なし'}
 - コンセプト: ${strategy?.concept || '指定なし'}
 - 強み: ${strategy?.strength || '指定なし'}

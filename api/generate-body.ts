@@ -27,7 +27,7 @@ ${outlineText}
 【元となるノウハウ】
 ${knowhow}
 
-【戦略企画（わど式）】
+【戦略企画】
 - ターゲット: ${strategy?.target || '指定なし'}
 - 記事コンセプト: ${strategy?.concept || '指定なし'}
 - 記事の強み（差別化）: ${strategy?.strength || '指定なし'}
