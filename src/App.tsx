@@ -42,8 +42,22 @@ function ArticleGenerator() {
 
   const [completedStages, setCompletedStages] = useState<GenerationStage[]>(['input']);
   const [showGuide, setShowGuide] = useState(false);
+  const [apiStatus, setApiStatus] = useState<{ hasKey: boolean; checked: boolean }>({ hasKey: true, checked: false });
 
   useEffect(() => {
+    const checkApi = async () => {
+      try {
+        const res = await fetch('/api/health');
+        if (res.ok) {
+          const data = await res.json();
+          setApiStatus({ hasKey: data.hasKey, checked: true });
+        }
+      } catch (e) {
+        console.error('Health check failed', e);
+      }
+    };
+    checkApi();
+
     const hasSeen = localStorage.getItem('hasSeenGuide');
     if (!hasSeen) {
       setShowGuide(true);
@@ -183,6 +197,12 @@ function ArticleGenerator() {
   return (
     <div className="min-h-screen flex flex-col items-center">
       <Header onShowGuide={() => setShowGuide(true)} />
+      {apiStatus.checked && !apiStatus.hasKey && (
+        <div className="w-full bg-red-500/10 border-b border-red-500/20 p-3 text-center">
+          <p className="text-red-400 font-bold">⚠️ APIキーが設定されていません</p>
+          <p className="text-xs text-red-300 mt-1">VercelのSettings &gt; Environment Variablesで「GEMINI_API_KEY」を設定してください。</p>
+        </div>
+      )}
 
       <main className="w-full max-w-4xl px-4 py-12 flex-grow flex flex-col justify-center">
         {/* 段階的制作モード切り替え */}
