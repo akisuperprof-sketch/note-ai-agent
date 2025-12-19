@@ -29,7 +29,7 @@ export function GuideModal({ isOpen, onClose }: GuideModalProps) {
     if (!isVisible && !isOpen) return null;
 
     return (
-  return (
+
         <div className={`fixed inset-0 z-50 flex items-center justify-center px-4 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={handleStart} />
