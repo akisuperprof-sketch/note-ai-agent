@@ -171,10 +171,10 @@ function ArticleGenerator() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col items-center">
       <Header />
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="w-full max-w-4xl px-4 py-12 flex-grow flex flex-col justify-center">
         {/* 段階的制作モード切り替え */}
         <div className="mb-6">
           <label className="flex items-center gap-3 cursor-pointer">
