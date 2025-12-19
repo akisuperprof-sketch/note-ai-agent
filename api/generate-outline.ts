@@ -64,13 +64,18 @@ level 1 はH2（大見出し）、level 2 はH3（小見出し）に相当しま
   try {
     let text = '';
     try {
-      text = await generateWithModel('gemini-1.5-flash-001');
+      text = await generateWithModel('gemini-1.5-flash');
     } catch (e: any) {
-      console.warn('gemini-1.5-flash-001 failed, trying gemini-1.5-pro-001', e.message);
+      console.warn('gemini-1.5-flash failed, trying gemini-1.5-pro', e.message);
       try {
-        text = await generateWithModel('gemini-1.5-pro-001');
+        text = await generateWithModel('gemini-1.5-pro');
       } catch (fallbackError: any) {
-        throw new Error(`Primary(Flash) Error: ${e.message} / Fallback(Pro) Error: ${fallbackError.message}`);
+        console.warn('gemini-1.5-pro failed, trying gemini-pro', fallbackError.message);
+        try {
+          text = await generateWithModel('gemini-pro');
+        } catch (lastResortError: any) {
+          throw new Error(`All models failed. Flash: ${e.message} / Pro: ${fallbackError.message} / Legacy: ${lastResortError.message}`);
+        }
       }
     }
 

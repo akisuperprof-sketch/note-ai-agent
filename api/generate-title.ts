@@ -49,16 +49,21 @@ ${knowhow}
   try {
     let text = '';
     try {
-      // Primary model: gemini-1.5-flash-001 (Specific version)
-      text = await generateWithModel('gemini-1.5-flash-001');
+      // 1. Try gemini-1.5-flash (Latest fast model)
+      text = await generateWithModel('gemini-1.5-flash');
     } catch (e: any) {
-      console.warn('gemini-1.5-flash-001 failed, trying gemini-1.5-pro-001', e.message);
-      // Fallback: gemini-1.5-pro-001 (More robust than gemini-pro)
+      console.warn('gemini-1.5-flash failed, trying gemini-1.5-pro', e.message);
       try {
-        text = await generateWithModel('gemini-1.5-pro-001');
+        // 2. Try gemini-1.5-pro (Higher intelligence)
+        text = await generateWithModel('gemini-1.5-pro');
       } catch (fallbackError: any) {
-        // If both fail, throw the ORIGINAL error to understand why the primary failed
-        throw new Error(`Primary(Flash) Error: ${e.message} / Fallback(Pro) Error: ${fallbackError.message}`);
+        console.warn('gemini-1.5-pro failed, trying gemini-pro', fallbackError.message);
+        try {
+          // 3. Last Resort: gemini-pro (Legacy v1.0, most stable availability)
+          text = await generateWithModel('gemini-pro');
+        } catch (lastResortError: any) {
+          throw new Error(`All models failed. Flash: ${e.message} / Pro: ${fallbackError.message} / Legacy: ${lastResortError.message}`);
+        }
       }
     }
 
