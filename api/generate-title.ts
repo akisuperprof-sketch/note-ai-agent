@@ -2,14 +2,14 @@ import { defineEventHandler, readBody } from 'h3';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default defineEventHandler(async (event) => {
-    const { knowhow, strategy, settings } = await readBody(event);
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return { success: false, error: 'GEMINI_API_KEY not set' };
+  const { knowhow, strategy, settings } = await readBody(event) as any;
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return { success: false, error: 'GEMINI_API_KEY not set' };
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
 
-    const prompt = `
+  const prompt = `
 あなたはnote記事のタイトル作成の専門家です。
 以下の情報を元に、読者を惹きつける魅力的なタイトル案を5つ提案してください。
 
@@ -37,15 +37,15 @@ ${knowhow}
 }
 `;
 
-    try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-        // JSON部分だけ抽出（Markdownコードブロック除去）
-        const jsonString = text.replace(/```json\n|\n```/g, '').trim();
-        const parsed = JSON.parse(jsonString);
-        return { success: true, titles: parsed.titles };
-    } catch (e: any) {
-        return { success: false, error: e.message };
-    }
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    // JSON部分だけ抽出（Markdownコードブロック除去）
+    const jsonString = text.replace(/```json\n|\n```/g, '').trim();
+    const parsed = JSON.parse(jsonString);
+    return { success: true, titles: parsed.titles };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
 });

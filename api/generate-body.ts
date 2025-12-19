@@ -2,7 +2,7 @@ import { defineEventHandler, readBody } from 'h3';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default defineEventHandler(async (event) => {
-    const { knowhow, selectedTitle, outline, settings } = await readBody(event);
+    const { knowhow, selectedTitle, outline, settings } = await readBody(event) as any;
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return { success: false, error: 'GEMINI_API_KEY not set' };
 

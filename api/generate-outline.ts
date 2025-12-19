@@ -2,14 +2,14 @@ import { defineEventHandler, readBody } from 'h3';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default defineEventHandler(async (event) => {
-    const { knowhow, selectedTitle, settings } = await readBody(event);
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return { success: false, error: 'GEMINI_API_KEY not set' };
+  const { knowhow, selectedTitle, settings } = await readBody(event) as any;
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return { success: false, error: 'GEMINI_API_KEY not set' };
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
 
-    const prompt = `
+  const prompt = `
 あなたはプロのWebライター、編集者です。
 以下のタイトルとノウハウを元に、note記事の構成案（見出し構成）を作成してください。
 
@@ -38,14 +38,14 @@ ${knowhow}
 level 1 はH2（大見出し）、level 2 はH3（小見出し）に相当します。
 `;
 
-    try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-        const jsonString = text.replace(/```json\n|\n```/g, '').trim();
-        const parsed = JSON.parse(jsonString);
-        return { success: true, outline: { sections: parsed.sections } };
-    } catch (e: any) {
-        return { success: false, error: e.message };
-    }
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    const jsonString = text.replace(/```json\n|\n```/g, '').trim();
+    const parsed = JSON.parse(jsonString);
+    return { success: true, outline: { sections: parsed.sections } };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
 });
