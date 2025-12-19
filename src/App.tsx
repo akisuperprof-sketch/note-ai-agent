@@ -201,7 +201,7 @@ function ArticleGenerator() {
                   }`} />
               </div>
             </div>
-            <span className="font-medium text-gray-200">段階的制作モード</span>
+            <span className="font-medium text-gray-200">段階的上級者向け設定</span>
           </label>
         </div>
 

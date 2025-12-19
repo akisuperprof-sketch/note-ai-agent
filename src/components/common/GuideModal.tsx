@@ -97,7 +97,7 @@ export function GuideModal({ isOpen, onClose }: GuideModalProps) {
                             <div>
                                 <h3 className="font-bold text-amber-400 mb-2 text-sm">活用のヒント</h3>
                                 <ul className="text-xs text-gray-300 space-y-1.5 list-disc list-inside">
-                                    <li><span className="font-semibold text-amber-200">段階的制作モード</span>を使えば、目次を確認しながらこだわって作れます</li>
+                                    <li><span className="font-semibold text-amber-200">段階的上級者向け設定</span>を使えば、目次を確認しながらこだわって作れます</li>
                                     <li>生成完了まで<span className="font-semibold text-amber-200">約30〜60秒</span>ほどお待ちください（文章量によります）</li>
                                     <li>記事の内容に合った<span className="font-semibold text-amber-200">アイキャッチ画像</span>も自動で提案・生成されます</li>
                                 </ul>
