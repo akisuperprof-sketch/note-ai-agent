@@ -177,13 +177,58 @@ ${knowhow}
         const encodedPrompt = encodeURIComponent(finalPrompt);
 
         // ランダムなシードを追加して、キャッシュバスティングと毎回異なる画像を生成
+
+        // ランダムなシードを追加して、キャッシュバスティングと毎回異なる画像を生成
         const seed = Math.floor(Math.random() * 1000000);
 
+        // 画像生成モデルの優先順位設定
+        const imageStrategies = [
+            { model: 'magen-3.0-generate-001', type: 'google' },     // 最優先
+            { model: 'gemini-3-pro-image-preview', type: 'google' }, // 2番目
+            { model: 'nano-banana-pro-preview', type: 'pollinations' }, // 3番目
+            { model: 'gemini-2.0-flash-exp', type: 'google' }        // フォールバック
+        ];
 
-        // サーバーサイドでの画像生成試行はタイムアウトの原因になるため、
-        // 確実かつ高速に表示できる Pollinations URL方式（クライアントサイド読み込み）を採用。
-        // 日本語テキスト描画に最も適した 'flux' モデルを指定。
-        const generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=flux`;
+        let generatedImageUrl = '';
+
+        for (const strategy of imageStrategies) {
+            try {
+                console.log(`Trying image generation with model: ${strategy.model} (${strategy.type})`);
+
+                if (strategy.type === 'google') {
+                    // Google系モデルの試行
+                    try {
+                        const model = genAI.getGenerativeModel({ model: strategy.model });
+                        // 画像生成を試みる
+                        // 現行SDKでは画像生成専用のレスポンス構造ではない場合が多いため
+                        // 明確な成功以外は失敗とみなしてPollinationsへフォールバックさせる
+                        const result = await model.generateContent(finalPrompt);
+                        // もしここで有効な画像バイナリが取得成功したらgeneratedImageUrlにセット（未実装：SDK仕様待ち）
+                        throw new Error("Google model generation integration pending. Fallback to next.");
+                    } catch (gErr) {
+                        console.warn(`Google generation failed for ${strategy.model}.`);
+                        continue;
+                    }
+
+                } else if (strategy.type === 'pollinations') {
+                    // Pollinations AI (URL生成のみ行い、サーバーサイドfetchはしない)
+                    // これによりタイムアウトを回避しつつ、指定モデルでの生成URLを発行する
+                    const modelParam = strategy.model;
+                    generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=${modelParam}`;
+                    console.log(`Using Pollinations URL with model: ${modelParam}`);
+                    break; // URL生成できたのでループ終了
+                }
+
+            } catch (e) {
+                console.warn(`Strategy failed: ${strategy.model}`);
+                continue;
+            }
+        }
+
+        // 全て失敗した場合の最終フォールバック
+        if (!generatedImageUrl) {
+            generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=flux`;
+        }
 
         return {
             success: true,
