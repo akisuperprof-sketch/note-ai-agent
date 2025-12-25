@@ -280,7 +280,7 @@ function ArticleGenerator() {
         </div>
       )}
 
-      <main className="w-full max-w-4xl px-6 py-16 md:px-12 md:py-24 flex-grow flex flex-col justify-center">
+      <main className="w-full max-w-3xl px-6 py-12 flex-grow flex flex-col justify-center mx-auto">
         {/* タブナビゲーション（段階的モード時のみ表示） */}
         {isStepMode && (
           <div className="mb-6">
