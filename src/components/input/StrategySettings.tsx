@@ -9,7 +9,7 @@ export function StrategySettings() {
     return (
         <div className="space-y-6">
             <Accordion
-                title="戦略企画（自分で詳細設定オプション）"
+                title="カスタマイズ計画（自分で詳細設定オプション）"
                 icon={<Target className="w-5 h-5 text-emerald-400" />}
                 defaultOpen={false}
             >

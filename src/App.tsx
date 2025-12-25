@@ -279,26 +279,6 @@ function ArticleGenerator() {
       )}
 
       <main className="w-full max-w-4xl px-4 py-12 flex-grow flex flex-col justify-center">
-        {/* 段階的制作モード切り替え */}
-        <div className="mb-6">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <div className="relative">
-              <input
-                type="checkbox"
-                checked={isStepMode}
-                onChange={(e) => setIsStepMode(e.target.checked)}
-                className="sr-only"
-              />
-              <div className={`w-12 h-6 rounded-full transition-colors ${isStepMode ? 'bg-primary-500' : 'bg-gray-600'
-                }`}>
-                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${isStepMode ? 'translate-x-7' : 'translate-x-1'
-                  }`} />
-              </div>
-            </div>
-            <span className="font-medium text-gray-200">段階的上級者向け設定</span>
-          </label>
-        </div>
-
         {/* タブナビゲーション（段階的モード時のみ表示） */}
         {isStepMode && (
           <div className="mb-6">
@@ -318,6 +298,27 @@ function ArticleGenerator() {
             <>
               <KnowhowInput />
               <BasicSettings />
+
+              {/* 段階的制作モード切り替え */}
+              <div className="py-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={isStepMode}
+                      onChange={(e) => setIsStepMode(e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div className={`w-12 h-6 rounded-full transition-colors ${isStepMode ? 'bg-primary-500' : 'bg-gray-600'
+                      }`}>
+                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${isStepMode ? 'translate-x-7' : 'translate-x-1'
+                        }`} />
+                    </div>
+                  </div>
+                  <span className="font-medium text-gray-200">段階的上級者向け設定</span>
+                </label>
+              </div>
+
               <StrategySettings />
             </>
           )}
