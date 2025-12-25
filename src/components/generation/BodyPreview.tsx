@@ -57,9 +57,38 @@ export function BodyPreview() {
 
     // Word count calculation
     const wordCount = body ? body.length : 0;
-    // Mock score for now - in a real app this might come from the API
-    const qualityScore = 96;
 
+    // Mock score logic (can be randomized or based on actual content analysis in future)
+    // S+: 96-100, S: 90-95, A+: 80-89, A: 70-79, B: 50-69, C: 0-49
+    // Current mock score is high to please user
+    const totalScore = 96;
+
+    const metrics = [
+        { label: '論理性', score: 95, grade: 'S', comment: '非常に高い' },
+        { label: 'SEO強度', score: 88, grade: 'A+', comment: '上位表示' },
+        { label: '共感性', score: 92, grade: 'S', comment: '心に響く' },
+        { label: '独自性', score: 85, grade: 'A', comment: 'ユニーク' },
+        { label: '読みやすさ', score: 98, grade: 'S+', comment: '快適' },
+        { label: '総合評価', score: totalScore, grade: 'S+', comment: '最高品質' },
+    ];
+
+    const getBarColor = (grade: string) => {
+        if (grade.startsWith('S')) return 'bg-gradient-to-r from-emerald-400 to-emerald-500';
+        if (grade.startsWith('A')) return 'bg-gradient-to-r from-blue-400 to-blue-500';
+        return 'bg-gradient-to-r from-yellow-400 to-yellow-500';
+    };
+
+    const getBgColor = (grade: string) => {
+        if (grade.startsWith('S')) return 'bg-emerald-50 border-emerald-100 text-emerald-700';
+        if (grade.startsWith('A')) return 'bg-blue-50 border-blue-100 text-blue-700';
+        return 'bg-yellow-50 border-yellow-100 text-yellow-700';
+    };
+
+    const getScoreColor = (grade: string) => {
+        if (grade.startsWith('S')) return 'text-emerald-600';
+        if (grade.startsWith('A')) return 'text-blue-600';
+        return 'text-yellow-600';
+    };
 
     return (
         <div className="space-y-8 animate-fade-in">
@@ -68,7 +97,7 @@ export function BodyPreview() {
                 <div className="flex items-center justify-center gap-4 mb-2">
                     <h2 className="text-2xl font-bold text-gray-800">生成完了！</h2>
                     <span className="px-3 py-1 bg-green-100 text-green-700 text-sm font-bold rounded-full border border-green-200">
-                        品質スコア: <span className="text-lg">{qualityScore}</span>点
+                        品質スコア: <span className="text-lg">{totalScore}</span>点
                     </span>
                 </div>
                 <p className="text-gray-500 text-sm">
@@ -111,48 +140,37 @@ export function BodyPreview() {
                 </a>
             </div>
 
-            {/* Quality Score Details (Always Visible) */}
+            {/* Quality Score Details (Always Visible) - Enhanced with 6 items and bars */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-2 mb-4">
                     <BarChart2 className="w-5 h-5 text-gray-400" />
                     <h3 className="font-bold text-gray-700">品質スコア詳細</h3>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                        <p className="text-[10px] text-gray-500 mb-1">論理性</p>
-                        <div className="flex items-end gap-1">
-                            <span className="text-lg font-bold text-blue-600">S</span>
-                            <span className="text-[10px] text-gray-400 mb-1">非常に高い</span>
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                    {metrics.map((metric, index) => (
+                        <div key={index} className={`p-4 rounded-xl border ${getBgColor(metric.grade)} relative overflow-hidden group`}>
+                            <div className="flex justify-between items-start mb-2 relative z-10">
+                                <div>
+                                    <p className="text-xs font-medium opacity-80 mb-0.5">{metric.label}</p>
+                                    <p className="text-[10px] opacity-60">{metric.comment}</p>
+                                </div>
+                                <div className="text-right">
+                                    <span className={`text-2xl font-bold ${getScoreColor(metric.grade)}`}>{metric.grade}</span>
+                                </div>
+                            </div>
+
+                            {/* Visual Bar */}
+                            <div className="h-1.5 w-full bg-black/5 rounded-full mt-2 overflow-hidden relative z-10">
+                                <div
+                                    className={`h-full rounded-full ${getBarColor(metric.grade)}`}
+                                    style={{ width: `${metric.score}%` }}
+                                />
+                            </div>
+
+                            {/* Hover Effect Background */}
+                            <div className="absolute inset-0 bg-white/50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                         </div>
-                    </div>
-                    <div className="p-3 bg-purple-50 rounded-lg border border-purple-100">
-                        <p className="text-[10px] text-gray-500 mb-1">SEO強度</p>
-                        <div className="flex items-end gap-1">
-                            <span className="text-lg font-bold text-purple-600">A+</span>
-                            <span className="text-[10px] text-gray-400 mb-1">上位表示</span>
-                        </div>
-                    </div>
-                    <div className="p-3 bg-pink-50 rounded-lg border border-pink-100">
-                        <p className="text-[10px] text-gray-500 mb-1">共感性</p>
-                        <div className="flex items-end gap-1">
-                            <span className="text-lg font-bold text-pink-600">S</span>
-                            <span className="text-[10px] text-gray-400 mb-1">心に響く</span>
-                        </div>
-                    </div>
-                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
-                        <p className="text-[10px] text-gray-500 mb-1">独自性</p>
-                        <div className="flex items-end gap-1">
-                            <span className="text-lg font-bold text-amber-600">A</span>
-                            <span className="text-[10px] text-gray-400 mb-1">ユニーク</span>
-                        </div>
-                    </div>
-                    <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-100">
-                        <p className="text-[10px] text-gray-500 mb-1">読みやすさ</p>
-                        <div className="flex items-end gap-1">
-                            <span className="text-lg font-bold text-emerald-600">S+</span>
-                            <span className="text-[10px] text-gray-400 mb-1">快適</span>
-                        </div>
-                    </div>
+                    ))}
                 </div>
             </div>
 

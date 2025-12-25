@@ -23,9 +23,11 @@ function ArticleGenerator() {
     setCurrentStage,
     setIsStepMode,
     setIsGenerating,
+
     setGeneratedTitles,
     setOutline,
     setBody,
+    setGeneratedImageUrl,
     setCompletedStages,
     resetFromStage,
     loadArticle,
@@ -138,8 +140,12 @@ function ArticleGenerator() {
     setIsGenerating(true);
     try {
       const res = await api.generateBody({ knowhow, selectedTitle, outline, settings, strategy });
+
       if (res.success && res.body) {
         setBody(res.body.markdown, res.body.metaDescription, res.body.hashtags);
+        if (res.body.generatedImageUrl) {
+          setGeneratedImageUrl(res.body.generatedImageUrl);
+        }
         setCurrentStage('body');
         const newStages = Array.from(new Set([...completedStages, 'body'])) as GenerationStage[];
         setCompletedStages(newStages);
@@ -150,6 +156,7 @@ function ArticleGenerator() {
           body: res.body.markdown,
           metaDescription: res.body.metaDescription,
           hashtags: res.body.hashtags,
+          generatedImageUrl: res.body.generatedImageUrl,
           currentStage: 'body',
           completedStages: newStages,
         };
@@ -194,7 +201,11 @@ function ArticleGenerator() {
       const bodyRes = await api.generateBody({ knowhow, selectedTitle: title, outline: { sections }, settings, strategy });
       if (!bodyRes.success || !bodyRes.body) throw new Error(bodyRes.error || 'Body generation failed');
 
+
       setBody(bodyRes.body.markdown, bodyRes.body.metaDescription, bodyRes.body.hashtags);
+      if (bodyRes.body.generatedImageUrl) {
+        setGeneratedImageUrl(bodyRes.body.generatedImageUrl);
+      }
       setCurrentStage('body');
       const finalStages: GenerationStage[] = ['input', 'title', 'outline', 'body'];
       setCompletedStages(finalStages);
@@ -217,6 +228,8 @@ function ArticleGenerator() {
         metaDescription: bodyRes.body.metaDescription,
         hashtags: bodyRes.body.hashtags,
         currentStage: 'body',
+
+        generatedImageUrl: bodyRes.body.generatedImageUrl,
         completedStages: finalStages,
       };
 
