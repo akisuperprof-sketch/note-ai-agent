@@ -286,6 +286,13 @@ function ArticleGenerator() {
       <Header
         onShowGuide={() => setShowGuide(true)}
         onShowHistory={() => setShowHistory(true)}
+        onReset={() => {
+          if (confirm('トップ画面に戻りますか？\n入力内容はクリアされます。')) {
+            resetFromStage('input');
+            setIsStepMode(false);
+            window.scrollTo(0, 0);
+          }
+        }}
       />
 
       {apiStatus.checked && !apiStatus.hasKey && (
