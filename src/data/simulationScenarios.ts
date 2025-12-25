@@ -207,7 +207,7 @@ export const simulationScenarios: SimulationScenario[] = [
                 otherInstructions: '反応が取れたツイート厳選集をCTAにする',
             }
         }
-    }
+    },
     {
         id: 'case-6',
         label: 'Case 6: AI活用術（ChatGPT）',
