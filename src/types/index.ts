@@ -4,22 +4,47 @@
 export type WritingStyle = 'polite' | 'formal' | 'friendly';
 
 // 読者層
-export type AudienceLevel = 'beginner' | 'intermediate' | 'advanced' | 'general';
+export type AudienceLevel = 'beginner' | 'intermediate' | 'advanced';
 
 // 生成ステージ
 export type GenerationStage = 'input' | 'title' | 'outline' | 'body';
 
-// 戦略企画設定
+// 文体の日本語ラベル
+export const styleLabels: Record<WritingStyle, string> = {
+    polite: '丁寧で落ち着いた（ですます調）',
+    friendly: 'フレンドリーで親しみやすい',
+    formal: '専門的で論理的（である調）',
+};
+
+// 読者層の日本語ラベル
+export const audienceLabels: Record<AudienceLevel, string> = {
+    beginner: '初心者向け',
+    intermediate: '中級者向け',
+    advanced: '専門家向け',
+};
+
+// 文字数オプション
+export const wordCountOptions = [
+    { value: 2500, label: '2,500文字' },
+    { value: 5000, label: '5,000文字' },
+    { value: 7500, label: '7,500文字' },
+    { value: 10000, label: '10,000文字' },
+];
+
+/**
+ * 戦略企画（わど式）の設定
+ */
 export interface StrategySettings {
-    title: string;
-    target: string;
-    concept: string;
-    strength: string;
-    structure: string;
-    otherInstructions: string;
+    target: string;          // ターゲット・読者変容
+    concept: string;         // 記事コンセプト
+    strength: string;        // 記事の強み
+    structure: string;       // 記事構成案（大まかな）
+    otherInstructions: string; // その他の指示
 }
 
-// 基本設定
+/**
+ * 基本設定
+ */
 export interface BasicSettings {
     style: WritingStyle;
     audience: AudienceLevel;
@@ -27,14 +52,18 @@ export interface BasicSettings {
     imageTheme: string;
 }
 
-// 構成のセクション
+/**
+ * 構成案のセクション
+ */
 export interface OutlineSection {
-    level: number;
+    level: number; // 1=H2, 2=H3
     heading: string;
     summary: string;
 }
 
-// 記事データ全体
+/**
+ * 記事全体のデータ構造
+ */
 export interface ArticleData {
     // 入力データ
     knowhow: string;
@@ -48,49 +77,31 @@ export interface ArticleData {
     body: string;
     metaDescription: string;
 
-    // 状態
+    // 状態管理
     currentStage: GenerationStage;
     isStepMode: boolean;
     isGenerating: boolean;
+    completedStages: GenerationStage[]; // 完了したステージ
 }
 
-// デフォルト値
-export const defaultStrategy: StrategySettings = {
-    title: '',
-    target: '',
-    concept: '',
-    strength: '',
-    structure: '',
-    otherInstructions: '',
-};
-
-export const defaultSettings: BasicSettings = {
-    style: 'polite',
-    audience: 'beginner',
-    wordCount: 5000,
-    imageTheme: '',
-};
-
+/**
+ * デフォルト値
+ */
 export const defaultArticleData: ArticleData = {
-    knowhow: `Obsidianで作る「第二の脳」構築ロードマップ【1週間完全ガイド】
-Before→After：情報整理に憧れる人が、何から手をつけていいか分からない状況を、7日間の具体的アクションプランで解決して、迷走期間を0にする。
-想定ターゲット：体系的に学びたい真面目な初心者。
-合成要素：ロードマップ ＋ フォルダ構成案 ＋ 習慣化スケジュール。
-差別化：{初心者} × {1日1タスク（スモールステップ）}。
-まとめ軸：時系列（最初の1週間）。
-参照先候補：表B-2, D-1, A-1
-フック案：
-X：Obsidianで「第二の脳」を作りたいけど、挫折した人へ。1日1つ、これだけやってください。7日後には最強の環境が完成します。
-YouTube：インストールから1週間で「第二の脳」を作る。初心者のための完全ロードマップ。
-中身の骨子：
-Day1: インストールと日本語化。
-Day2: フォルダ構成（Inbox/Zettelkasten）。
-Day3: テンプレート作成。
-... Day7: グラフビューを眺める。
-CTA：7日間チェックリスト（PDF/Notion）配布。
-型：構成「Step by Step」、ターゲット「体系化`,
-    strategy: defaultStrategy,
-    settings: defaultSettings,
+    knowhow: '',
+    strategy: {
+        target: '',
+        concept: '',
+        strength: '',
+        structure: '',
+        otherInstructions: '',
+    },
+    settings: {
+        style: 'polite',
+        audience: 'beginner',
+        wordCount: 5000,
+        imageTheme: '',
+    },
     generatedTitles: [],
     selectedTitle: '',
     outline: [],
@@ -99,13 +110,50 @@ CTA：7日間チェックリスト（PDF/Notion）配布。
     currentStage: 'input',
     isStepMode: false,
     isGenerating: false,
+    completedStages: ['input'],
 };
 
-// API レスポンス型
+/**
+ * 履歴アイテムの定義
+ */
+export interface HistoryItem {
+    id: string;
+    timestamp: number;
+    title: string;       // 表示用タイトル（生成されていなければ「無題」など）
+    data: ArticleData;
+}
+
+// APIリクエスト型定義
+
+export interface TitleRequest {
+    knowhow: string;
+    strategy?: Partial<StrategySettings>;
+    settings: {
+        style: WritingStyle;
+        audience: AudienceLevel;
+    };
+}
+
 export interface TitleResponse {
     success: boolean;
     titles?: string[];
     error?: string;
+}
+
+export interface OutlineRequest {
+    knowhow: string;
+    selectedTitle: string;
+    strategy?: {
+        structure?: string;
+        target?: string;
+        concept?: string;
+        strength?: string;
+        otherInstructions?: string;
+    };
+    settings: {
+        wordCount: number;
+        audience: string;
+    };
 }
 
 export interface OutlineResponse {
@@ -114,6 +162,20 @@ export interface OutlineResponse {
         sections: OutlineSection[];
     };
     error?: string;
+}
+
+export interface BodyRequest {
+    knowhow: string;
+    selectedTitle: string;
+    outline: {
+        sections: OutlineSection[];
+    };
+    strategy?: Partial<StrategySettings>;
+    settings: {
+        style: WritingStyle;
+        audience: string;
+        wordCount: number;
+    };
 }
 
 export interface BodyResponse {
@@ -125,26 +187,3 @@ export interface BodyResponse {
     };
     error?: string;
 }
-
-// 文体の日本語ラベル
-export const styleLabels: Record<WritingStyle, string> = {
-    polite: 'ですます調（丁寧）',
-    formal: 'である調（簡潔）',
-    friendly: 'フレンドリー',
-};
-
-// 読者層の日本語ラベル
-export const audienceLabels: Record<AudienceLevel, string> = {
-    beginner: '初心者向け',
-    intermediate: '中級者向け',
-    advanced: '上級者向け',
-    general: '一般向け',
-};
-
-// 文字数オプション
-export const wordCountOptions = [
-    { value: 1000, label: '1,000文字' },
-    { value: 3000, label: '3,000文字' },
-    { value: 5000, label: '5,000文字' },
-    { value: 10000, label: '10,000文字' },
-];

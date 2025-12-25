@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArticleProvider, useArticle } from './contexts/ArticleContext';
 import { Header } from './components/common/Header';
 import { TabNav } from './components/common/TabNav';
@@ -9,11 +9,12 @@ import { BasicSettings } from './components/input/BasicSettings';
 import { TitleSelector } from './components/generation/TitleSelector';
 import { OutlineEditor } from './components/generation/OutlineEditor';
 import { BodyPreview } from './components/generation/BodyPreview';
-import type { GenerationStage } from './types';
+import type { GenerationStage, ArticleData } from './types';
 import { Sparkles, ArrowRight, RotateCcw } from 'lucide-react';
 import { GuideModal } from './components/common/GuideModal';
+import { HistoryModal } from './components/history/HistoryModal';
 import { api } from './lib/api';
-import { useEffect } from 'react';
+import { useHistory } from './hooks/useHistory';
 
 function ArticleGenerator() {
   const {
@@ -24,7 +25,9 @@ function ArticleGenerator() {
     setGeneratedTitles,
     setOutline,
     setBody,
+    setCompletedStages,
     resetFromStage,
+    loadArticle,
   } = useArticle();
 
   const {
@@ -38,11 +41,14 @@ function ArticleGenerator() {
     selectedTitle,
     outline,
     body,
+    completedStages,
   } = articleData;
 
-  const [completedStages, setCompletedStages] = useState<GenerationStage[]>(['input']);
   const [showGuide, setShowGuide] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [apiStatus, setApiStatus] = useState<{ hasKey: boolean; checked: boolean }>({ hasKey: true, checked: false });
+
+  const history = useHistory();
 
   useEffect(() => {
     const checkApi = async () => {
@@ -64,6 +70,12 @@ function ArticleGenerator() {
     }
   }, []);
 
+  // auto-save when generation completes or manually triggered
+  const saveCurrentArticle = (data: ArticleData) => {
+    if (data.body || data.outline.length > 0 || data.generatedTitles.length > 0) {
+      history.saveToHistory(data);
+    }
+  };
 
   // API呼び出し
   const generateTitles = async () => {
@@ -78,10 +90,7 @@ function ArticleGenerator() {
       if (res.success && res.titles) {
         setGeneratedTitles(res.titles);
         setCurrentStage('title');
-        setCompletedStages(prev => {
-          const next = new Set([...prev, 'title']);
-          return Array.from(next) as GenerationStage[];
-        });
+        setCompletedStages(Array.from(new Set([...completedStages, 'title'])) as GenerationStage[]);
       } else {
         alert('タイトルの生成に失敗しました: ' + (res.error || '不明なエラー'));
       }
@@ -105,10 +114,7 @@ function ArticleGenerator() {
       if (res.success && res.outline?.sections) {
         setOutline(res.outline.sections);
         setCurrentStage('outline');
-        setCompletedStages(prev => {
-          const next = new Set([...prev, 'outline']);
-          return Array.from(next) as GenerationStage[];
-        });
+        setCompletedStages(Array.from(new Set([...completedStages, 'outline'])) as GenerationStage[]);
       } else {
         alert('構成の生成に失敗しました: ' + (res.error || '不明なエラー'));
       }
@@ -132,10 +138,19 @@ function ArticleGenerator() {
       if (res.success && res.body) {
         setBody(res.body.markdown, res.body.metaDescription);
         setCurrentStage('body');
-        setCompletedStages(prev => {
-          const next = new Set([...prev, 'body']);
-          return Array.from(next) as GenerationStage[];
-        });
+        const newStages = Array.from(new Set([...completedStages, 'body'])) as GenerationStage[];
+        setCompletedStages(newStages);
+
+        // Auto-save
+        const dataToSave: ArticleData = {
+          ...articleData,
+          body: res.body.markdown,
+          metaDescription: res.body.metaDescription,
+          currentStage: 'body',
+          completedStages: newStages,
+        };
+        saveCurrentArticle(dataToSave);
+
       } else {
         alert('本文の生成に失敗しました: ' + (res.error || '不明なエラー'));
       }
@@ -147,7 +162,63 @@ function ArticleGenerator() {
     }
   };
 
+  const generateAll = async () => {
+    if (!knowhow.trim()) {
+      alert('ノウハウを入力してください');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      // 1. Title
+      const titleRes = await api.generateTitle({ knowhow, strategy, settings });
+      if (!titleRes.success || !titleRes.titles?.length) throw new Error(titleRes.error || 'Title generation failed');
+      const titles = titleRes.titles;
+      const title = titles[0]; // Auto-select first
+      setGeneratedTitles(titles);
+
+      // 2. Outline
+      const outlineRes = await api.generateOutline({ knowhow, selectedTitle: title, settings, strategy });
+      if (!outlineRes.success || !outlineRes.outline?.sections) throw new Error(outlineRes.error || 'Outline generation failed');
+      const sections = outlineRes.outline.sections;
+      setOutline(sections);
+
+      // 3. Body
+      const bodyRes = await api.generateBody({ knowhow, selectedTitle: title, outline: { sections }, settings, strategy });
+      if (!bodyRes.success || !bodyRes.body) throw new Error(bodyRes.error || 'Body generation failed');
+
+      setBody(bodyRes.body.markdown, bodyRes.body.metaDescription);
+      setCurrentStage('body');
+      const finalStages: GenerationStage[] = ['input', 'title', 'outline', 'body'];
+      setCompletedStages(finalStages);
+
+      // Auto-save
+      const dataToSave: ArticleData = {
+        ...articleData,
+        generatedTitles: titles,
+        selectedTitle: title,
+        outline: sections,
+        body: bodyRes.body.markdown,
+        metaDescription: bodyRes.body.metaDescription,
+        currentStage: 'body',
+        completedStages: finalStages,
+      };
+      saveCurrentArticle(dataToSave);
+
+    } catch (e: any) {
+      alert('生成エラー: ' + e.message);
+      console.error(e);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleGenerateClick = () => {
+    if (!isStepMode && currentStage === 'input') {
+      generateAll();
+      return;
+    }
+
     switch (currentStage) {
       case 'input':
         generateTitles();
@@ -164,7 +235,6 @@ function ArticleGenerator() {
   const handleReset = () => {
     if (confirm('現在の内容をリセットしますか？')) {
       resetFromStage('input');
-      setCompletedStages(['input']);
     }
   };
 
@@ -196,7 +266,11 @@ function ArticleGenerator() {
 
   return (
     <div className="min-h-screen flex flex-col items-center">
-      <Header onShowGuide={() => setShowGuide(true)} />
+      <Header
+        onShowGuide={() => setShowGuide(true)}
+        onShowHistory={() => setShowHistory(true)}
+      />
+
       {apiStatus.checked && !apiStatus.hasKey && (
         <div className="w-full bg-red-500/10 border-b border-red-500/20 p-3 text-center">
           <p className="text-red-400 font-bold">⚠️ APIキーが設定されていません</p>
@@ -289,6 +363,18 @@ function ArticleGenerator() {
 
       {/* ガイドモーダル */}
       <GuideModal isOpen={showGuide} onClose={() => setShowGuide(false)} />
+
+      {/* 履歴モーダル */}
+      <HistoryModal
+        isOpen={showHistory}
+        onClose={() => setShowHistory(false)}
+        history={history.history}
+        onSelect={(item) => {
+          loadArticle(item.data);
+          // 復元後、CompletedStagesなども復元されている（はず）
+        }}
+        onDelete={history.deleteHistoryItem}
+      />
     </div>
   );
 }

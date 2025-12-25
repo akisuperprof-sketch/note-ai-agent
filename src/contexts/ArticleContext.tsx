@@ -26,10 +26,12 @@ export interface ArticleContextType {
     setCurrentStage: (stage: GenerationStage) => void;
     setIsStepMode: (isStepMode: boolean) => void;
     setIsGenerating: (isGenerating: boolean) => void;
+    setCompletedStages: (stages: GenerationStage[]) => void;
 
-    // リセット
+    // リセット・ロード
     resetAll: () => void;
     resetFromStage: (stage: GenerationStage) => void;
+    loadArticle: (data: ArticleData) => void;
 }
 
 const ArticleContext = createContext<ArticleContextType | undefined>(undefined);
@@ -87,6 +89,10 @@ export function ArticleProvider({ children }: { children: ReactNode }) {
         setArticleData(prev => ({ ...prev, isGenerating }));
     };
 
+    const setCompletedStages = (stages: GenerationStage[]) => {
+        setArticleData(prev => ({ ...prev, completedStages: stages }));
+    };
+
     const resetAll = () => {
         setArticleData(defaultArticleData);
     };
@@ -104,20 +110,29 @@ export function ArticleProvider({ children }: { children: ReactNode }) {
                     newData.outline = [];
                     newData.body = '';
                     newData.metaDescription = '';
+                    newData.completedStages = ['input'];
                     break;
                 case 'outline':
                     newData.outline = [];
                     newData.body = '';
                     newData.metaDescription = '';
+                    // outline以前の完了ステージを維持 (input, title)
+                    newData.completedStages = prev.completedStages.filter(s => s === 'input' || s === 'title');
                     break;
                 case 'body':
                     newData.body = '';
                     newData.metaDescription = '';
+                    // body以前の完了ステージを維持 (input, title, outline)
+                    newData.completedStages = prev.completedStages.filter(s => s !== 'body');
                     break;
             }
 
             return newData;
         });
+    };
+
+    const loadArticle = (data: ArticleData) => {
+        setArticleData(data);
     };
 
     return (
@@ -134,8 +149,10 @@ export function ArticleProvider({ children }: { children: ReactNode }) {
                 setCurrentStage,
                 setIsStepMode,
                 setIsGenerating,
+                setCompletedStages,
                 resetAll,
                 resetFromStage,
+                loadArticle,
             }}
         >
             {children}

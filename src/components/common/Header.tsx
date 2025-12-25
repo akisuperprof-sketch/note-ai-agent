@@ -1,10 +1,11 @@
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, Clock } from 'lucide-react';
 
 interface HeaderProps {
     onShowGuide?: () => void;
+    onShowHistory?: () => void;
 }
 
-export function Header({ onShowGuide }: HeaderProps) {
+export function Header({ onShowGuide, onShowHistory }: HeaderProps) {
     return (
         <header className="bg-[#0f172a]/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
             <div className="max-w-4xl mx-auto px-4 py-4">
@@ -18,13 +19,22 @@ export function Header({ onShowGuide }: HeaderProps) {
                         </div>
                     </div>
 
-                    <button
-                        onClick={onShowGuide}
-                        className="p-2 rounded-full hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
-                        title="使い方を見る"
-                    >
-                        <HelpCircle className="w-6 h-6" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={onShowHistory}
+                            className="p-2 rounded-full hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
+                            title="生成履歴"
+                        >
+                            <Clock className="w-6 h-6" />
+                        </button>
+                        <button
+                            onClick={onShowGuide}
+                            className="p-2 rounded-full hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
+                            title="使い方を見る"
+                        >
+                            <HelpCircle className="w-6 h-6" />
+                        </button>
+                    </div>
                 </div>
             </div>
         </header>
