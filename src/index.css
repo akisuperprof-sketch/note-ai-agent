@@ -192,8 +192,9 @@ textarea {
 
 /* ローディングオーバーレイ */
 .loading-overlay {
-  @apply fixed inset-0 bg-black/80 flex items-center justify-center z-50;
+  @apply fixed inset-0 bg-black/60 flex items-center justify-center z-50;
   @apply backdrop-blur-sm;
+  @apply transition-all duration-300;
 }
 
 /* タイトル候補カード */

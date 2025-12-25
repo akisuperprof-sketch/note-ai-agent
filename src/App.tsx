@@ -13,6 +13,7 @@ import type { GenerationStage, ArticleData } from './types';
 import { Sparkles, ArrowRight, RotateCcw } from 'lucide-react';
 import { GuideModal } from './components/common/GuideModal';
 import { HistoryModal } from './components/history/HistoryModal';
+import { NoteTutorialModal } from './components/common/NoteTutorialModal';
 import { api } from './lib/api';
 import { useHistory } from './hooks/useHistory';
 
@@ -46,6 +47,8 @@ function ArticleGenerator() {
 
   const [showGuide, setShowGuide] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showNoteTutorial, setShowNoteTutorial] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('AIが生成中です...');
   const [apiStatus, setApiStatus] = useState<{ hasKey: boolean; checked: boolean }>({ hasKey: true, checked: false });
 
   const history = useHistory();
@@ -172,6 +175,7 @@ function ArticleGenerator() {
     setIsGenerating(true);
     try {
       // 1. Title
+      setLoadingMessage('記事のタイトルを考案中...');
       const titleRes = await api.generateTitle({ knowhow, strategy, settings });
       if (!titleRes.success || !titleRes.titles?.length) throw new Error(titleRes.error || 'Title generation failed');
       const titles = titleRes.titles;
@@ -179,12 +183,14 @@ function ArticleGenerator() {
       setGeneratedTitles(titles);
 
       // 2. Outline
+      setLoadingMessage('記事の構成を考えています...');
       const outlineRes = await api.generateOutline({ knowhow, selectedTitle: title, settings, strategy });
       if (!outlineRes.success || !outlineRes.outline?.sections) throw new Error(outlineRes.error || 'Outline generation failed');
       const sections = outlineRes.outline.sections;
       setOutline(sections);
 
       // 3. Body
+      setLoadingMessage('記事本文を執筆・推敲しています...');
       const bodyRes = await api.generateBody({ knowhow, selectedTitle: title, outline: { sections }, settings, strategy });
       if (!bodyRes.success || !bodyRes.body) throw new Error(bodyRes.error || 'Body generation failed');
 
@@ -205,7 +211,16 @@ function ArticleGenerator() {
         currentStage: 'body',
         completedStages: finalStages,
       };
+
+      // 4. Image Generation (Mock)
+      setLoadingMessage('見出し画像を生成しています...');
+      await new Promise(resolve => setTimeout(resolve, 3000)); // 3s wait
+
+      // Complete
       saveCurrentArticle(dataToSave);
+      setLoadingMessage('すべての生成が完了しました！');
+      await new Promise(resolve => setTimeout(resolve, 800)); // Short wait to show completion
+      setShowNoteTutorial(true);
 
     } catch (e: any) {
       alert('生成エラー: ' + e.message);
@@ -362,10 +377,13 @@ function ArticleGenerator() {
       </main>
 
       {/* ローディングオーバーレイ */}
-      {isGenerating && <Loading overlay message="AIが生成中です..." />}
+      {isGenerating && <Loading overlay message={loadingMessage} />}
 
       {/* ガイドモーダル */}
       <GuideModal isOpen={showGuide} onClose={() => setShowGuide(false)} />
+
+      {/* Note チュートリアルモーダル */}
+      <NoteTutorialModal isOpen={showNoteTutorial} onClose={() => setShowNoteTutorial(false)} />
 
       {/* 履歴モーダル */}
       <HistoryModal
