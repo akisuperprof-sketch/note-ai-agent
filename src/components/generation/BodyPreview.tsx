@@ -6,9 +6,16 @@ import { useState, useEffect } from 'react';
 export function BodyPreview() {
     const { articleData } = useArticle();
 
+
     const { body, metaDescription, hashtags, selectedTitle, generatedImageUrl } = articleData;
     const [copied, setCopied] = useState(false);
+    const [isImageLoading, setIsImageLoading] = useState(true);
 
+    useEffect(() => {
+        if (generatedImageUrl) {
+            setIsImageLoading(true);
+        }
+    }, [generatedImageUrl]);
 
     // Show copy success state for 3 seconds
     useEffect(() => {
@@ -180,12 +187,27 @@ export function BodyPreview() {
                     <h1 className="text-3xl font-bold mb-10 pb-4 border-b border-gray-200">{selectedTitle}</h1>
 
                     <div className="note-preview-content">
+
                         {/* Generated Image Preview Area */}
                         <div className="mb-10 aspect-video rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shadow-sm border border-gray-200 group relative">
                             {generatedImageUrl ? (
                                 <>
-                                    <img src={generatedImageUrl} alt="見出し画像" className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                                    <img
+                                        src={generatedImageUrl}
+                                        alt="見出し画像"
+                                        className={`w-full h-full object-cover transition-opacity duration-500 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
+                                        onLoad={() => setIsImageLoading(false)}
+                                    />
+                                    {isImageLoading && (
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50/80 animate-pulse">
+                                            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
+                                                <span className="text-3xl animate-bounce">🎨</span>
+                                            </div>
+                                            <p className="text-gray-500 font-bold mb-1">画像を生成中...</p>
+                                            <p className="text-xs text-gray-400">AIが記事の世界観を描いています</p>
+                                        </div>
+                                    )}
+                                    <div className={`absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 ${isImageLoading ? 'hidden' : ''}`}>
                                         <button className="bg-white text-gray-900 px-4 py-2 rounded-full font-bold text-sm hover:bg-gray-100 transition-colors">
                                             再生成する
                                         </button>
@@ -196,12 +218,11 @@ export function BodyPreview() {
                                     </div>
                                 </>
                             ) : (
-                                <div className="text-center text-gray-400">
+                                <div className="text-center text-gray-400 animate-pulse">
                                     <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
-                                        <span className="text-2xl">🖼️</span>
+                                        <span className="text-2xl animate-spin">⏳</span>
                                     </div>
-                                    <p className="text-sm font-bold text-gray-500">見出し画像を生成中...</p>
-                                    <p className="text-xs mt-1">AIが記事に合った画像をデザインしています</p>
+                                    <p className="text-sm font-bold text-gray-500">見出し画像を準備中...</p>
                                 </div>
                             )}
                         </div>
