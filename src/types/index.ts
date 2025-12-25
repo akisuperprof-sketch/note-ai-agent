@@ -101,7 +101,7 @@ export const defaultArticleData: ArticleData = {
     settings: {
         style: 'polite',
         audience: 'beginner',
-        wordCount: 5000,
+        wordCount: 3000,
         imageTheme: '',
     },
     generatedTitles: [],
