@@ -1,4 +1,4 @@
-import { X, FileText, Image, ExternalLink } from 'lucide-react';
+import { X, Image, ExternalLink } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface NoteTutorialModalProps {
