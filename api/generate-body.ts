@@ -48,6 +48,13 @@ export default defineEventHandler(async (event) => {
 
 
 
+
+        // 参照画像の特徴があれば、それをプロンプトに追加して、スタイルやキャラクターを反映させる
+        let referenceInstruction = '';
+        if (referenceDescription) {
+            referenceInstruction = `ユーザーは参照画像（キャラクターやスタイル）を提供しています。この画像の特徴（"${referenceDescription}"）を**必ず**維持し、それをベースにした画像プロンプトを作成してください。新しい要素を追加しても良いですが、元のスタイルやキャラクター性は崩さないでください。`;
+        }
+
         const wordCount = settings?.wordCount || 2500;
         const prompt = `
 あなたはプロのWebライター、そして熱狂的なファンを持つnoteクリエイターです。
@@ -82,7 +89,8 @@ ${knowhow}
 10. **文字数確保**: ${wordCount}文字以上を目安に、具体例や補足説明を加えて内容を充実させてください。
 11. **開始時の注意**: 返事は不要です。すぐに出力形式に従って書いてください。
 
-12. **画像プロンプト**: 記事の内容にマッチする見出し画像の生成用プロンプトを**英語で**作成してください。「文字」に関する指示は含めないでください（プログラム側でタイトルを合成します）。具体的な被写体、背景、スタイル（例: digital art, cinematic lighting, photorealistic）のみを記述してください。
+
+12. **画像プロンプト**: ${referenceInstruction || ''} 記事の内容にマッチする見出し画像の生成用プロンプトを**英語で**作成してください。「文字」に関する指示は含めないでください（プログラム側でタイトルを合成します）。具体的な被写体、背景、スタイル（例: digital art, cinematic lighting, photorealistic）のみを記述してください。
 
 出力形式:
 (ここにマークダウン形式の本文)
