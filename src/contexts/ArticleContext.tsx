@@ -16,11 +16,13 @@ export interface ArticleContextType {
     updateStrategy: (key: keyof StrategySettings, value: string) => void;
     updateSettings: (key: keyof BasicSettings, value: string | number) => void;
 
+
     // 生成結果更新
     setGeneratedTitles: (titles: string[]) => void;
     setSelectedTitle: (title: string) => void;
     setOutline: (outline: OutlineSection[]) => void;
     setBody: (body: string, metaDescription?: string, hashtags?: string[]) => void;
+    setGeneratedImageUrl: (url: string) => void;
 
     // 状態管理
     setCurrentStage: (stage: GenerationStage) => void;
@@ -76,6 +78,10 @@ export function ArticleProvider({ children }: { children: ReactNode }) {
             metaDescription: metaDescription || prev.metaDescription,
             hashtags: hashtags || prev.hashtags || [],
         }));
+    };
+
+    const setGeneratedImageUrl = (url: string) => {
+        setArticleData(prev => ({ ...prev, generatedImageUrl: url }));
     };
 
     const setCurrentStage = (stage: GenerationStage) => {
@@ -150,6 +156,7 @@ export function ArticleProvider({ children }: { children: ReactNode }) {
                 setSelectedTitle,
                 setOutline,
                 setBody,
+                setGeneratedImageUrl,
                 setCurrentStage,
                 setIsStepMode,
                 setIsGenerating,

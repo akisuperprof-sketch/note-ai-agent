@@ -5,9 +5,10 @@ import { useState, useEffect } from 'react';
 
 export function BodyPreview() {
     const { articleData } = useArticle();
-    const { body, metaDescription, hashtags, selectedTitle } = articleData;
+
+    const { body, metaDescription, hashtags, selectedTitle, generatedImageUrl } = articleData;
     const [copied, setCopied] = useState(false);
-    const [activeTab, setActiveTab] = useState<'result' | 'preview' | 'score'>('result');
+    const [activeTab, setActiveTab] = useState<'result' | 'preview' | 'score'>('preview'); // Default to preview
 
     // Show copy success state for 3 seconds
     useEffect(() => {
@@ -57,17 +58,20 @@ export function BodyPreview() {
     // Mock score for now - in a real app this might come from the API
     const qualityScore = 96;
 
+
     return (
         <div className="space-y-8 animate-fade-in">
-            {/* Success Hero Section */}
-            <div className="text-center space-y-4 py-6">
-                <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/30">
-                    <Check className="w-8 h-8 text-white" strokeWidth={3} />
+            {/* Success Hero Section with Quality Score Summary */}
+            <div className="text-center space-y-4 py-6 bg-gradient-to-b from-green-50/50 to-transparent rounded-2xl border border-green-100/50">
+                <div className="flex items-center justify-center gap-4 mb-2">
+                    <h2 className="text-2xl font-bold text-gray-800">生成完了！</h2>
+                    <span className="px-3 py-1 bg-green-100 text-green-700 text-sm font-bold rounded-full border border-green-200">
+                        品質スコア: <span className="text-lg">{qualityScore}</span>点
+                    </span>
                 </div>
-                <div>
-                    <h2 className="text-2xl font-bold text-emerald-400 mb-2">生成完了！</h2>
-                    <p className="text-gray-400">{wordCount.toLocaleString()}文字の記事が完成しました</p>
-                </div>
+                <p className="text-gray-500 text-sm">
+                    {wordCount.toLocaleString()}文字の記事が完成しました
+                </p>
             </div>
 
             {/* Big Action Buttons - Flex */}
@@ -177,6 +181,33 @@ export function BodyPreview() {
                             <h1 className="text-3xl font-bold mb-10 pb-4 border-b border-gray-200">{selectedTitle}</h1>
 
                             <div className="note-preview-content">
+
+                                {/* Generated Image Preview Area */}
+                                <div className="mb-10 aspect-video rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shadow-sm border border-gray-200 group relative">
+                                    {generatedImageUrl ? (
+                                        <>
+                                            <img src={generatedImageUrl} alt="見出し画像" className="w-full h-full object-cover" />
+                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                                                <button className="bg-white text-gray-900 px-4 py-2 rounded-full font-bold text-sm hover:bg-gray-100 transition-colors">
+                                                    再生成する
+                                                </button>
+                                                <a href={generatedImageUrl} download="eyecatch.png" className="bg-[#41c9b4] text-white px-4 py-2 rounded-full font-bold text-sm hover:opacity-90 transition-opacity flex items-center gap-2">
+                                                    <Download className="w-4 h-4" />
+                                                    保存する
+                                                </a>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="text-center text-gray-400">
+                                            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                <span className="text-2xl">🖼️</span>
+                                            </div>
+                                            <p className="text-sm font-bold text-gray-500">見出し画像を生成中...</p>
+                                            <p className="text-xs mt-1">AIが記事に合った画像をデザインしています</p>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <ReactMarkdown
                                     components={{
                                         h2: ({ node, ...props }) => <h2 className="text-2xl font-bold mt-12 mb-6 text-gray-900 border-b border-gray-200 pb-2" {...props} />,
@@ -250,7 +281,7 @@ export function BodyPreview() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div className="p-4 bg-[#0f172a] rounded-xl border border-gray-800">
                                 <p className="text-xs text-gray-500 mb-1">論理性</p>
                                 <div className="flex items-end gap-2">
@@ -262,7 +293,28 @@ export function BodyPreview() {
                                 <p className="text-xs text-gray-500 mb-1">SEO強度</p>
                                 <div className="flex items-end gap-2">
                                     <span className="text-xl font-bold text-purple-400">A+</span>
-                                    <span className="text-xs text-gray-400 mb-1">上位表示が期待できる</span>
+                                    <span className="text-xs text-gray-400 mb-1">上位表示</span>
+                                </div>
+                            </div>
+                            <div className="p-4 bg-[#0f172a] rounded-xl border border-gray-800">
+                                <p className="text-xs text-gray-500 mb-1">共感性</p>
+                                <div className="flex items-end gap-2">
+                                    <span className="text-xl font-bold text-pink-400">S</span>
+                                    <span className="text-xs text-gray-400 mb-1">心に響く</span>
+                                </div>
+                            </div>
+                            <div className="p-4 bg-[#0f172a] rounded-xl border border-gray-800">
+                                <p className="text-xs text-gray-500 mb-1">独自性</p>
+                                <div className="flex items-end gap-2">
+                                    <span className="text-xl font-bold text-amber-400">A</span>
+                                    <span className="text-xs text-gray-400 mb-1">ユニーク</span>
+                                </div>
+                            </div>
+                            <div className="p-4 bg-[#0f172a] rounded-xl border border-gray-800">
+                                <p className="text-xs text-gray-500 mb-1">読みやすさ</p>
+                                <div className="flex items-end gap-2">
+                                    <span className="text-xl font-bold text-emerald-400">S+</span>
+                                    <span className="text-xs text-gray-400 mb-1">快適</span>
                                 </div>
                             </div>
                         </div>
