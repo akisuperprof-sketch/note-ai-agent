@@ -75,10 +75,13 @@ export interface ArticleData {
     generatedTitles: string[];
     selectedTitle: string;
     outline: OutlineSection[];
+
     body: string;
     metaDescription: string;
     hashtags: string[];
     generatedImageUrl?: string;
+    // 新機能: 参照画像（Base64 string）
+    referenceImage?: string;
 
     // 状態管理
     currentStage: GenerationStage;
@@ -110,8 +113,10 @@ export const defaultArticleData: ArticleData = {
     selectedTitle: '',
     outline: [],
     body: '',
+
     metaDescription: '',
     hashtags: [],
+    referenceImage: undefined,
     currentStage: 'input',
     isStepMode: false,
     isGenerating: false,
@@ -176,11 +181,13 @@ export interface BodyRequest {
         sections: OutlineSection[];
     };
     strategy?: Partial<StrategySettings>;
+
     settings: {
         style: WritingStyle;
         audience: string;
         wordCount: number;
     };
+    referenceImage?: string;
 }
 
 export interface BodyResponse {

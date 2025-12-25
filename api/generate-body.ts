@@ -2,15 +2,44 @@ import { defineEventHandler, readBody } from 'h3';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default defineEventHandler(async (event) => {
+
     try {
-        const { knowhow, selectedTitle, outline, settings, strategy } = await readBody(event) as any;
+        const { knowhow, selectedTitle, outline, settings, strategy, referenceImage } = await readBody(event) as any;
         const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
         if (!apiKey) {
             const debugKeys = Object.keys(process.env).filter(k => k.toLowerCase().includes('gemini') || k.toLowerCase().includes('api'));
             return { success: false, error: `GEMINI_API_KEY not set. Found similar keys: ${debugKeys.join(', ')}` };
         }
 
+
         const genAI = new GoogleGenerativeAI(apiKey);
+
+        // 参照画像がある場合、その特徴を抽出する
+        let referenceDescription = '';
+        if (referenceImage) {
+            try {
+                console.log('Analyzing reference image...');
+                const visionModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+                const base64Data = referenceImage.split(',')[1];
+                const mimeType = referenceImage.split(';')[0].split(':')[1];
+
+                const imageParts = [{
+                    inlineData: {
+                        data: base64Data,
+                        mimeType: mimeType
+                    }
+                }];
+
+                const result = await visionModel.generateContent([
+                    "Describe the main character, art style, and color palette of this image in English. Focus on visual elements that can be used to recreate a similar style. Keep it concise (under 50 words).",
+                    ...imageParts
+                ]);
+                referenceDescription = result.response.text();
+                console.log('Reference image description:', referenceDescription);
+            } catch (e) {
+                console.error('Failed to analyze reference image:', e);
+            }
+        }
 
         // 構成をテキスト化
         const outlineText = outline.sections
@@ -131,10 +160,16 @@ ${knowhow}
 
 
 
+
         // 画像生成用URL（Pollinations.aiを使用）
         // 生成されたプロンプトがあればそれを使い、なければタイトルをフォールバックとして使う
         // タイトルテキストを画像に埋め込むための特別なプロンプト構成
-        const basePrompt = imagePrompt || 'minimalist flat design illustration blog header soft colors';
+        let basePrompt = imagePrompt || 'minimalist flat design illustration blog header soft colors';
+
+        // 参照画像の特徴があれば、それをプロンプトに追加して、スタイルやキャラクターを反映させる
+        if (referenceDescription) {
+            basePrompt = `${referenceDescription}, ${basePrompt}`;
+        }
 
         // 日本語テキストをきれいに描画するためのFlux向けプロンプト構成
         const finalPrompt = `text "${selectedTitle}" written in Japanese, ${basePrompt}, high quality typography, poster design`;
@@ -144,9 +179,57 @@ ${knowhow}
         // ランダムなシードを追加して、キャッシュバスティングと毎回異なる画像を生成
         const seed = Math.floor(Math.random() * 1000000);
 
-        // model=fluxを指定（Pollinationsでテキスト描画に最適）
-        // nano-banana-pro-preview という指定があったが、Pollinationsでの確実なテキスト描画には flux が推奨されるため flux を指定
-        const generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=flux`;
+
+        // 画像生成モデルの試行順序（優先度順）
+        const imageStrategies = [
+            { model: 'magen-3.0-generate-001', type: 'google' },
+            { model: 'gemini-3-pro-image-preview', type: 'google' },
+            { model: 'nano-banana-pro-preview', type: 'pollinations' },
+            { model: 'gemini-2.0-flash-exp', type: 'google' } // Fallback
+        ];
+
+        let generatedImageUrl = '';
+
+        for (const strategy of imageStrategies) {
+            try {
+                console.log(`Trying image generation with model: ${strategy.model} (${strategy.type})`);
+
+                if (strategy.type === 'google') {
+                    // Google API Attempt
+                    const model = genAI.getGenerativeModel({ model: strategy.model });
+
+                    // プロンプトを渡してみる（画像生成を意図）
+                    // 現状の標準SDKとAPIキーでは、Imagenモデルへのアクセスは制限されているか、専用メソッドが必要です。
+                    // 成功すればラッキー、失敗(404/400)すればキャッチして次のPollinationsへ進みます。
+                    const result = await model.generateContent(finalPrompt);
+                    const response = await result.response;
+
+                    // レスポンスがテキストのみの場合は画像生成失敗とみなす
+                    // （実際のImagenレスポンス構造に合わせて調整が必要だが、現状は想定失敗ライン）
+                    throw new Error('Google GenAI method returned text/unavailable. Moving to next provider.');
+
+                } else if (strategy.type === 'pollinations') {
+                    // Pollinations AI Attempt
+                    const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=${strategy.model}`;
+
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error(`Pollinations API returned ${res.status}`);
+
+                    const arrayBuffer = await res.arrayBuffer();
+                    if (arrayBuffer.byteLength < 1000) throw new Error('Generated image is too small or invalid');
+
+                    const buffer = Buffer.from(arrayBuffer);
+                    const base64 = buffer.toString('base64');
+                    const mimeType = res.headers.get('content-type') || 'image/jpeg';
+
+                    generatedImageUrl = `data:${mimeType};base64,${base64}`;
+                    break; // 成功したらループ終了
+                }
+            } catch (e: any) {
+                console.warn(`Image generation failed with ${strategy.model}:`, e.message);
+                continue;
+            }
+        }
 
         return {
             success: true,

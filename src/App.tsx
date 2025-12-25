@@ -4,8 +4,10 @@ import { Header } from './components/common/Header';
 import { TabNav } from './components/common/TabNav';
 import { Loading } from './components/common/Loading';
 import { KnowhowInput } from './components/input/KnowhowInput';
+
 import { StrategySettings } from './components/input/StrategySettings';
 import { BasicSettings } from './components/input/BasicSettings';
+import { ReferenceImageInput } from './components/input/ReferenceImageInput';
 import { TitleSelector } from './components/generation/TitleSelector';
 import { OutlineEditor } from './components/generation/OutlineEditor';
 import { BodyPreview } from './components/generation/BodyPreview';
@@ -43,8 +45,10 @@ function ArticleGenerator() {
     generatedTitles,
     selectedTitle,
     outline,
+
     body,
     completedStages,
+    referenceImage,
   } = articleData;
 
   const [showGuide, setShowGuide] = useState(false);
@@ -137,9 +141,10 @@ function ArticleGenerator() {
       return;
     }
 
+
     setIsGenerating(true);
     try {
-      const res = await api.generateBody({ knowhow, selectedTitle, outline, settings, strategy });
+      const res = await api.generateBody({ knowhow, selectedTitle, outline, settings, strategy, referenceImage });
 
       if (res.success && res.body) {
         setBody(res.body.markdown, res.body.metaDescription, res.body.hashtags);
@@ -196,9 +201,10 @@ function ArticleGenerator() {
       const sections = outlineRes.outline.sections;
       setOutline(sections);
 
+
       // 3. Body
       setLoadingMessage('記事本文を執筆・推敲しています...');
-      const bodyRes = await api.generateBody({ knowhow, selectedTitle: title, outline: { sections }, settings, strategy });
+      const bodyRes = await api.generateBody({ knowhow, selectedTitle: title, outline: { sections }, settings, strategy, referenceImage });
       if (!bodyRes.success || !bodyRes.body) throw new Error(bodyRes.error || 'Body generation failed');
 
 
@@ -335,9 +341,11 @@ function ArticleGenerator() {
         <div className="card p-6 md:p-8 space-y-6">
           {/* 入力タブ */}
           {currentStage === 'input' && (
+
             <>
               <KnowhowInput />
               <BasicSettings />
+              <ReferenceImageInput />
 
               {/* 段階的制作モード切り替え - Modernized */}
               <div className="py-2 flex items-center justify-end">
