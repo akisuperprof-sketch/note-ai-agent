@@ -35,6 +35,7 @@ export const wordCountOptions = [
  * 戦略企画（わど式）の設定
  */
 export interface StrategySettings {
+    title: string;           // 記事タイトル
     target: string;          // ターゲット・読者変容
     concept: string;         // 記事コンセプト
     strength: string;        // 記事の強み
@@ -90,6 +91,7 @@ export interface ArticleData {
 export const defaultArticleData: ArticleData = {
     knowhow: '',
     strategy: {
+        title: '',
         target: '',
         concept: '',
         strength: '',
