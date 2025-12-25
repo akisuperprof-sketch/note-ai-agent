@@ -52,7 +52,8 @@ ${knowhow}
 
 10. **文字数確保**: ${wordCount}文字以上を目安に、具体例や補足説明を加えて内容を充実させてください。
 11. **開始時の注意**: 返事は不要です。すぐに出力形式に従って書いてください。
-12. **画像プロンプト**: 記事の内容にマッチする見出し画像の生成用プロンプトを**英語で**作成してください。抽象的な概念ではなく、具体的な被写体、背景、スタイル（例: digital art, cinematic lighting）を指定してください。
+
+12. **画像プロンプト**: 記事の内容にマッチする見出し画像の生成用プロンプトを**英語で**作成してください。「文字」に関する指示は含めないでください（プログラム側でタイトルを合成します）。具体的な被写体、背景、スタイル（例: digital art, cinematic lighting, photorealistic）のみを記述してください。
 
 出力形式:
 (ここにマークダウン形式の本文)
@@ -129,14 +130,23 @@ ${knowhow}
         }
 
 
+
         // 画像生成用URL（Pollinations.aiを使用）
-        // 生成されたプロンプトがあればそれを使い、なければタイトルをフォールバックとして使う（ただしタイトルは英語に翻訳されていないので精度は下がる）
-        const finalPrompt = imagePrompt || `${selectedTitle} minimalist flat design illustration blog header soft colors`;
+        // 生成されたプロンプトがあればそれを使い、なければタイトルをフォールバックとして使う
+        // タイトルテキストを画像に埋め込むための特別なプロンプト構成
+        const basePrompt = imagePrompt || 'minimalist flat design illustration blog header soft colors';
+
+        // 日本語テキストをきれいに描画するためのFlux向けプロンプト構成
+        const finalPrompt = `text "${selectedTitle}" written in Japanese, ${basePrompt}, high quality typography, poster design`;
+
         const encodedPrompt = encodeURIComponent(finalPrompt);
 
         // ランダムなシードを追加して、キャッシュバスティングと毎回異なる画像を生成
         const seed = Math.floor(Math.random() * 1000000);
-        const generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}`;
+
+        // model=fluxを指定（Pollinationsでテキスト描画に最適）
+        // nano-banana-pro-preview という指定があったが、Pollinationsでの確実なテキスト描画には flux が推奨されるため flux を指定
+        const generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=flux`;
 
         return {
             success: true,
