@@ -180,56 +180,10 @@ ${knowhow}
         const seed = Math.floor(Math.random() * 1000000);
 
 
-        // 画像生成モデルの試行順序（優先度順）
-        const imageStrategies = [
-            { model: 'magen-3.0-generate-001', type: 'google' },
-            { model: 'gemini-3-pro-image-preview', type: 'google' },
-            { model: 'nano-banana-pro-preview', type: 'pollinations' },
-            { model: 'gemini-2.0-flash-exp', type: 'google' } // Fallback
-        ];
-
-        let generatedImageUrl = '';
-
-        for (const strategy of imageStrategies) {
-            try {
-                console.log(`Trying image generation with model: ${strategy.model} (${strategy.type})`);
-
-                if (strategy.type === 'google') {
-                    // Google API Attempt
-                    const model = genAI.getGenerativeModel({ model: strategy.model });
-
-                    // プロンプトを渡してみる（画像生成を意図）
-                    // 現状の標準SDKとAPIキーでは、Imagenモデルへのアクセスは制限されているか、専用メソッドが必要です。
-                    // 成功すればラッキー、失敗(404/400)すればキャッチして次のPollinationsへ進みます。
-                    const result = await model.generateContent(finalPrompt);
-                    const response = await result.response;
-
-                    // レスポンスがテキストのみの場合は画像生成失敗とみなす
-                    // （実際のImagenレスポンス構造に合わせて調整が必要だが、現状は想定失敗ライン）
-                    throw new Error('Google GenAI method returned text/unavailable. Moving to next provider.');
-
-                } else if (strategy.type === 'pollinations') {
-                    // Pollinations AI Attempt
-                    const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=${strategy.model}`;
-
-                    const res = await fetch(url);
-                    if (!res.ok) throw new Error(`Pollinations API returned ${res.status}`);
-
-                    const arrayBuffer = await res.arrayBuffer();
-                    if (arrayBuffer.byteLength < 1000) throw new Error('Generated image is too small or invalid');
-
-                    const buffer = Buffer.from(arrayBuffer);
-                    const base64 = buffer.toString('base64');
-                    const mimeType = res.headers.get('content-type') || 'image/jpeg';
-
-                    generatedImageUrl = `data:${mimeType};base64,${base64}`;
-                    break; // 成功したらループ終了
-                }
-            } catch (e: any) {
-                console.warn(`Image generation failed with ${strategy.model}:`, e.message);
-                continue;
-            }
-        }
+        // サーバーサイドでの画像生成試行はタイムアウトの原因になるため、
+        // 確実かつ高速に表示できる Pollinations URL方式（クライアントサイド読み込み）を採用。
+        // 日本語テキスト描画に最も適した 'flux' モデルを指定。
+        const generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=flux`;
 
         return {
             success: true,
