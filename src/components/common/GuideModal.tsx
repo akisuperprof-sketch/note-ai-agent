@@ -35,10 +35,10 @@ export function GuideModal({ isOpen, onClose }: GuideModalProps) {
             <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={handleStart} />
 
             {/* Modal Content - Dark Theme */}
-            <div className={`relative w-full max-w-2xl bg-[#0f172a] rounded-3xl overflow-hidden shadow-2xl border border-white/10 transform transition-all duration-300 ${isOpen ? 'scale-100 translate-y-0' : 'scale-95 translate-y-8'}`}>
+            <div className={`relative w-full max-w-2xl bg-[#0f172a] rounded-xl overflow-hidden shadow-2xl border border-white/10 transform transition-all duration-300 ${isOpen ? 'scale-100 translate-y-0' : 'scale-95 translate-y-8'}`}>
 
                 {/* Header */}
-                <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-6 flex items-start justify-between border-b border-white/5">
+                <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-8 flex items-start justify-between border-b border-white/5">
                     <div className="flex gap-4">
                         <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
                             <Lightbulb className="w-6 h-6 text-white" />
@@ -54,7 +54,7 @@ export function GuideModal({ isOpen, onClose }: GuideModalProps) {
                 </div>
 
                 {/* Body */}
-                <div className="p-6 space-y-4">
+                <div className="p-8 space-y-6">
                     {/* Step 1 */}
                     <div className="bg-gray-800/50 rounded-2xl p-5 flex gap-5 border border-white/5">
                         <div className="flex-shrink-0 w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow shadow-blue-500/20">1</div>
