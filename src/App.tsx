@@ -323,9 +323,12 @@ function ArticleGenerator() {
               <KnowhowInput />
               <BasicSettings />
 
-              {/* 段階的制作モード切り替え */}
-              <div className="py-2">
-                <label className="flex items-center gap-3 cursor-pointer">
+              {/* 段階的制作モード切り替え - Modernized */}
+              <div className="py-2 flex items-center justify-end">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <span className="text-sm font-medium text-gray-500 group-hover:text-gray-700 transition-colors">
+                    段階的上級者向け設定
+                  </span>
                   <div className="relative">
                     <input
                       type="checkbox"
@@ -333,13 +336,12 @@ function ArticleGenerator() {
                       onChange={(e) => setIsStepMode(e.target.checked)}
                       className="sr-only"
                     />
-                    <div className={`w-12 h-6 rounded-full transition-colors ${isStepMode ? 'bg-primary-500' : 'bg-gray-600'
+                    <div className={`w-11 h-6 rounded-full transition-colors duration-200 ease-in-out ${isStepMode ? 'bg-green-500' : 'bg-gray-200'
                       }`}>
-                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${isStepMode ? 'translate-x-7' : 'translate-x-1'
+                      <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 ease-in-out ${isStepMode ? 'translate-x-5' : 'translate-x-0'
                         }`} />
                     </div>
                   </div>
-                  <span className="font-medium text-gray-200">段階的上級者向け設定</span>
                 </label>
               </div>
 
@@ -358,11 +360,11 @@ function ArticleGenerator() {
 
           {/* アクションボタン */}
           {currentStage !== 'body' && (
-            <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+            <div className="flex items-center justify-between pt-6 border-t border-gray-100 mt-4">
               {(generatedTitles.length > 0 || outline.length > 0 || body) && (
                 <button
                   onClick={handleReset}
-                  className="flex items-center gap-1.5 text-gray-400 hover:text-red-400 transition-colors"
+                  className="flex items-center gap-1.5 text-gray-400 hover:text-red-500 transition-colors text-sm font-medium"
                 >
                   <RotateCcw className="w-4 h-4" />
                   リセット
@@ -372,11 +374,11 @@ function ArticleGenerator() {
               <button
                 onClick={handleGenerateClick}
                 disabled={!canGenerate()}
-                className="btn-primary flex items-center gap-2 ml-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary flex items-center justify-center gap-2 ml-auto disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto shadow-xl shadow-green-500/20 transform hover:-translate-y-0.5 transition-all"
               >
                 <Sparkles className="w-5 h-5" />
-                {getButtonText()}
-                <ArrowRight className="w-4 h-4" />
+                <span className="font-bold text-lg">{getButtonText()}</span>
+                <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           )}
