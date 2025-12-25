@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useArticle } from '../../contexts/ArticleContext';
 import { Trash2, Beaker, X } from 'lucide-react';
 import { simulationScenarios } from '../../data/simulationScenarios';
@@ -6,7 +6,24 @@ import type { SimulationScenario } from '../../data/simulationScenarios';
 
 export function KnowhowInput() {
     const { articleData, setKnowhow, updateStrategy, updateSettings } = useArticle();
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [showSimulations, setShowSimulations] = useState(false);
+
+    // Auto-resize logic
+    useEffect(() => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        const adjustHeight = () => {
+            textarea.style.height = 'auto'; // Reset height
+            const minHeight = 6 * 24; // Approximation for 6 lines (line-height ~24px)
+            const newHeight = Math.max(minHeight, textarea.scrollHeight);
+
+            textarea.style.height = `${newHeight}px`;
+        };
+
+        adjustHeight();
+    }, [articleData.knowhow]);
 
     const loadScenario = (scenario: SimulationScenario) => {
         if (confirm(`シミュレーション「${scenario.label}」のデータを読み込みますか？\n現在の入力内容は上書きされます。`)) {
@@ -87,9 +104,10 @@ export function KnowhowInput() {
             </div>
 
             <textarea
+                ref={textareaRef}
                 value={articleData.knowhow}
                 onChange={(e) => setKnowhow(e.target.value)}
-                rows={articleData.knowhow ? 20 : 5}
+                rows={6}
                 placeholder="ここにあなたのノウハウや一次情報を入力してください。
 
 例：
@@ -97,7 +115,7 @@ export function KnowhowInput() {
 - 専門知識やスキル
 - 解決した課題
 - 学んだこと"
-                className="input-field min-h-[200px] resize-y"
+                className="input-field resize-none overflow-hidden"
             />
 
             {articleData.knowhow && (
