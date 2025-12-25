@@ -72,7 +72,7 @@ export function GuideModal({ isOpen, onClose }: GuideModalProps) {
                         <div>
                             <h3 className="font-bold text-purple-300 mb-1">ターゲットと戦略（任意）</h3>
                             <p className="text-sm text-gray-300 leading-relaxed">
-                                誰に何を伝えたいか。<span className="font-bold text-purple-400">「戦略企画」</span>でターゲットやコンセプトを指定すると、より刺さる記事に仕上がります。
+                                誰に何を伝えたいか。<span className="font-bold text-purple-400">「カスタマイズ計画」</span>でターゲットやコンセプトを指定すると、より刺さる記事に仕上がります。
                             </p>
                         </div>
                     </div>

@@ -32,7 +32,7 @@ export const wordCountOptions = [
 ];
 
 /**
- * 戦略企画（わど式）の設定
+ * カスタマイズ計画の設定
  */
 export interface StrategySettings {
     title: string;           // 記事タイトル
