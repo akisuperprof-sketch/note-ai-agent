@@ -175,7 +175,24 @@ export function BodyPreview() {
                     <div className="bg-white text-gray-900 rounded-xl p-8 md:p-12 shadow-xl border border-gray-200">
                         <div className="prose prose-slate max-w-2xl mx-auto leading-loose">
                             <h1 className="text-3xl font-bold mb-10 pb-4 border-b border-gray-200">{selectedTitle}</h1>
-                            <ReactMarkdown>{body}</ReactMarkdown>
+
+                            <div className="note-preview-content">
+                                <ReactMarkdown
+                                    components={{
+                                        h2: ({ node, ...props }) => <h2 className="text-2xl font-bold mt-12 mb-6 text-gray-900 border-b border-gray-200 pb-2" {...props} />,
+                                        h3: ({ node, ...props }) => <h3 className="text-xl font-bold mt-8 mb-4 text-gray-900 border-l-4 border-green-500 pl-3" {...props} />,
+                                        p: ({ node, ...props }) => <p className="leading-loose text-gray-800 mb-6 text-[17px]" {...props} />,
+                                        ul: ({ node, ...props }) => <ul className="list-disc list-inside space-y-2 mb-6 bg-gray-50 p-6 rounded-lg border border-gray-100" {...props} />,
+                                        li: ({ node, ...props }) => <li className="text-gray-700 leading-relaxed" {...props} />,
+                                        strong: ({ node, ...props }) => <strong className="font-bold text-gray-900 bg-yellow-100 px-1" {...props} />,
+                                        blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-gray-300 pl-4 py-2 my-6 text-gray-500 italic bg-gray-50 pr-4" {...props} />,
+                                        a: ({ node, ...props }) => <a className="text-green-600 hover:text-green-700 underline underline-offset-4" {...props} />,
+                                        hr: ({ node, ...props }) => <hr className="my-8 border-gray-200" {...props} />
+                                    }}
+                                >
+                                    {body}
+                                </ReactMarkdown>
+                            </div>
 
                             {hashtags && hashtags.length > 0 && (
                                 <div className="mt-12 pt-8 border-t border-gray-100 flex flex-wrap gap-2">
