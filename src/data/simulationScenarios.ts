@@ -367,5 +367,5 @@ export const simulationScenarios: SimulationScenario[] = [
                 otherInstructions: '読んだ後に少しだけ呼吸が浅くなるような、優しい文章で',
             }
         }
-    }
+    },
 ];

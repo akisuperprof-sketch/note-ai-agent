@@ -78,6 +78,7 @@ export interface ArticleData {
     body: string;
     metaDescription: string;
     hashtags: string[];
+    generatedImageUrl?: string;
 
     // 状態管理
     currentStage: GenerationStage;
