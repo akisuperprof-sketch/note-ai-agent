@@ -1,6 +1,6 @@
 import { useArticle } from '../../contexts/ArticleContext';
 import ReactMarkdown from 'react-markdown';
-import { Copy, Download, Check, FileText, BarChart2, Eye, FileEdit } from 'lucide-react';
+import { Copy, Download, Check, FileText, BarChart2, Eye, FileEdit, ExternalLink } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export function BodyPreview() {
@@ -70,28 +70,40 @@ export function BodyPreview() {
                 </div>
             </div>
 
-            {/* Big Action Button */}
-            <button
-                onClick={handleCopy}
-                className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 transform active:scale-[0.98] shadow-xl ${copied
-                    ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-emerald-900/50'
-                    : 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white shadow-purple-900/40 hover:opacity-90'
-                    }`}
-            >
-                <div className="flex items-center justify-center gap-2">
-                    {copied ? (
-                        <>
-                            <Check className="w-6 h-6" />
-                            コピーしました！
-                        </>
-                    ) : (
-                        <>
-                            <Copy className="w-6 h-6" />
-                            記事をコピーする
-                        </>
-                    )}
-                </div>
-            </button>
+            {/* Big Action Buttons - Flex */}
+            <div className="flex flex-col md:flex-row gap-4">
+                <button
+                    onClick={handleCopy}
+                    className={`flex-1 py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 transform active:scale-[0.98] shadow-xl ${copied
+                        ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-emerald-900/20'
+                        : 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white shadow-purple-900/20 hover:opacity-90'
+                        }`}
+                >
+                    <div className="flex items-center justify-center gap-2">
+                        {copied ? (
+                            <>
+                                <Check className="w-6 h-6" />
+                                コピーしました！
+                            </>
+                        ) : (
+                            <>
+                                <Copy className="w-6 h-6" />
+                                記事をコピーする
+                            </>
+                        )}
+                    </div>
+                </button>
+
+                <a
+                    href="https://note.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 py-4 px-6 rounded-xl font-bold text-lg bg-white border-2 border-[#41c9b4] text-[#41c9b4] hover:bg-[#41c9b4] hover:text-white transition-all duration-300 shadow-lg shadow-[#41c9b4]/10 flex items-center justify-center gap-2 group"
+                >
+                    <ExternalLink className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                    noteを開く
+                </a>
+            </div>
 
             {/* Tabs */}
             <div className="flex bg-[#0f172a] p-1 rounded-xl">

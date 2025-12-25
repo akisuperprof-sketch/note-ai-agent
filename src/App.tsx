@@ -199,7 +199,15 @@ function ArticleGenerator() {
       const finalStages: GenerationStage[] = ['input', 'title', 'outline', 'body'];
       setCompletedStages(finalStages);
 
-      // Auto-save
+      // 4. Image Generation (Mock)
+      setLoadingMessage('見出し画像を生成中...');
+      await new Promise(resolve => setTimeout(resolve, 3000)); // 3s wait for mock image generation
+
+      // 5. Post Preparation
+      setLoadingMessage('note投稿準備中...');
+      await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5s wait for "posting" feeling
+
+      // Complete - Auto-save
       const dataToSave: ArticleData = {
         ...articleData,
         generatedTitles: titles,
@@ -212,11 +220,6 @@ function ArticleGenerator() {
         completedStages: finalStages,
       };
 
-      // 4. Image Generation (Mock)
-      setLoadingMessage('見出し画像を生成しています...');
-      await new Promise(resolve => setTimeout(resolve, 3000)); // 3s wait
-
-      // Complete
       saveCurrentArticle(dataToSave);
       setLoadingMessage('すべての生成が完了しました！');
       await new Promise(resolve => setTimeout(resolve, 800)); // Short wait to show completion
