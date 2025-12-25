@@ -136,7 +136,7 @@ function ArticleGenerator() {
     try {
       const res = await api.generateBody({ knowhow, selectedTitle, outline, settings, strategy });
       if (res.success && res.body) {
-        setBody(res.body.markdown, res.body.metaDescription);
+        setBody(res.body.markdown, res.body.metaDescription, res.body.hashtags);
         setCurrentStage('body');
         const newStages = Array.from(new Set([...completedStages, 'body'])) as GenerationStage[];
         setCompletedStages(newStages);
@@ -146,6 +146,7 @@ function ArticleGenerator() {
           ...articleData,
           body: res.body.markdown,
           metaDescription: res.body.metaDescription,
+          hashtags: res.body.hashtags,
           currentStage: 'body',
           completedStages: newStages,
         };
@@ -187,7 +188,7 @@ function ArticleGenerator() {
       const bodyRes = await api.generateBody({ knowhow, selectedTitle: title, outline: { sections }, settings, strategy });
       if (!bodyRes.success || !bodyRes.body) throw new Error(bodyRes.error || 'Body generation failed');
 
-      setBody(bodyRes.body.markdown, bodyRes.body.metaDescription);
+      setBody(bodyRes.body.markdown, bodyRes.body.metaDescription, bodyRes.body.hashtags);
       setCurrentStage('body');
       const finalStages: GenerationStage[] = ['input', 'title', 'outline', 'body'];
       setCompletedStages(finalStages);
@@ -200,6 +201,7 @@ function ArticleGenerator() {
         outline: sections,
         body: bodyRes.body.markdown,
         metaDescription: bodyRes.body.metaDescription,
+        hashtags: bodyRes.body.hashtags,
         currentStage: 'body',
         completedStages: finalStages,
       };

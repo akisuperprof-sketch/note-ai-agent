@@ -20,7 +20,7 @@ export interface ArticleContextType {
     setGeneratedTitles: (titles: string[]) => void;
     setSelectedTitle: (title: string) => void;
     setOutline: (outline: OutlineSection[]) => void;
-    setBody: (body: string, metaDescription?: string) => void;
+    setBody: (body: string, metaDescription?: string, hashtags?: string[]) => void;
 
     // 状態管理
     setCurrentStage: (stage: GenerationStage) => void;
@@ -69,11 +69,12 @@ export function ArticleProvider({ children }: { children: ReactNode }) {
         setArticleData(prev => ({ ...prev, outline }));
     };
 
-    const setBody = (body: string, metaDescription?: string) => {
+    const setBody = (body: string, metaDescription?: string, hashtags?: string[]) => {
         setArticleData(prev => ({
             ...prev,
             body,
             metaDescription: metaDescription || prev.metaDescription,
+            hashtags: hashtags || prev.hashtags || [],
         }));
     };
 
@@ -110,18 +111,21 @@ export function ArticleProvider({ children }: { children: ReactNode }) {
                     newData.outline = [];
                     newData.body = '';
                     newData.metaDescription = '';
+                    newData.hashtags = [];
                     newData.completedStages = ['input'];
                     break;
                 case 'outline':
                     newData.outline = [];
                     newData.body = '';
                     newData.metaDescription = '';
+                    newData.hashtags = [];
                     // outline以前の完了ステージを維持 (input, title)
                     newData.completedStages = prev.completedStages.filter(s => s === 'input' || s === 'title');
                     break;
                 case 'body':
                     newData.body = '';
                     newData.metaDescription = '';
+                    newData.hashtags = [];
                     // body以前の完了ステージを維持 (input, title, outline)
                     newData.completedStages = prev.completedStages.filter(s => s !== 'body');
                     break;

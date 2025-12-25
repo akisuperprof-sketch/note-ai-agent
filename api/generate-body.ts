@@ -45,11 +45,14 @@ ${knowhow}
 6. **FAQセクション**: 構成に「よくある質問」などが含まれる場合は、Q&A形式（**Q: ...** \n **A: ...**）で具体的かつ丁寧に回答してください。
 7. **CTA（行動喚起）**: 記事の最後には、「参考になったら『スキ』ボタンを押してもらえると励みになります！」「感想をコメントで教えてください」といった、note特有のコミュニケーションを促す一文を必ず入れてください。
 8. **SEO**: 記事の最後には、検索エンジン向けのメタディスクリプション（120文字）を生成してください。
+9. **ハッシュタグ**: noteで検索されやすい効果的なハッシュタグを3〜5個生成してください。（例: #note #副業）
 
 出力形式:
 (ここにマークダウン形式の本文)
 ---
 (ここにメタディスクリプション)
+---
+(ここにハッシュタグ)
 `;
 
         async function generateWithModel(modelName: string) {
@@ -92,16 +95,29 @@ ${knowhow}
             throw new Error(`All models failed. Last error: ${lastError.message}. Accessing: v1beta API.`);
         }
 
-        // 本文とメタディスクリプションの分離
+        // 本文とメタディスクリプション、ハッシュタグの分離
         const parts = text.split('---');
         const markdown = parts[0].trim();
-        const metaDescription = parts.length > 1 ? parts[parts.length - 1].trim() : '';
+        let metaDescription = '';
+        let hashtags: string[] = [];
+
+        if (parts.length >= 3) {
+            // Body --- Meta --- Hashtags
+            metaDescription = parts[1].trim();
+            const tagsText = parts[2].trim();
+            // Extract strings starting with #
+            hashtags = tagsText.match(/#[^\s#]+/g) || [];
+        } else if (parts.length === 2) {
+            // Body --- Meta (fallback)
+            metaDescription = parts[1].trim();
+        }
 
         return {
             success: true,
             body: {
                 markdown: markdown,
                 metaDescription: metaDescription,
+                hashtags: hashtags,
                 actualWordCount: markdown.length
             }
         };

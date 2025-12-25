@@ -77,6 +77,7 @@ export interface ArticleData {
     outline: OutlineSection[];
     body: string;
     metaDescription: string;
+    hashtags: string[];
 
     // 状態管理
     currentStage: GenerationStage;
@@ -109,6 +110,7 @@ export const defaultArticleData: ArticleData = {
     outline: [],
     body: '',
     metaDescription: '',
+    hashtags: [],
     currentStage: 'input',
     isStepMode: false,
     isGenerating: false,
@@ -185,6 +187,7 @@ export interface BodyResponse {
     body?: {
         markdown: string;
         metaDescription: string;
+        hashtags: string[];
         actualWordCount: number;
     };
     error?: string;

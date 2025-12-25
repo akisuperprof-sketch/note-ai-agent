@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 
 export function BodyPreview() {
     const { articleData } = useArticle();
-    const { body, metaDescription, selectedTitle } = articleData;
+    const { body, metaDescription, hashtags, selectedTitle } = articleData;
     const [copied, setCopied] = useState(false);
     const [activeTab, setActiveTab] = useState<'result' | 'preview' | 'score'>('result');
 
@@ -140,6 +140,17 @@ export function BodyPreview() {
                                 <p className="text-sm text-gray-300">{metaDescription}</p>
                             </div>
                         )}
+
+                        {hashtags && hashtags.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                                {hashtags.map((tag, index) => (
+                                    <span key={index} className="px-3 py-1 bg-blue-900/30 text-blue-300 text-sm rounded-full border border-blue-500/30">
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+
                         <div className="bg-[#1e293b]/50 rounded-xl border border-gray-700/50 p-6 overflow-hidden">
                             <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono">
                                 {body}
@@ -153,6 +164,16 @@ export function BodyPreview() {
                         <div className="prose prose-slate max-w-2xl mx-auto leading-loose">
                             <h1 className="text-3xl font-bold mb-10 pb-4 border-b border-gray-200">{selectedTitle}</h1>
                             <ReactMarkdown>{body}</ReactMarkdown>
+
+                            {hashtags && hashtags.length > 0 && (
+                                <div className="mt-12 pt-8 border-t border-gray-100 flex flex-wrap gap-2">
+                                    {hashtags.map((tag, index) => (
+                                        <span key={index} className="text-gray-500 hover:text-gray-900 cursor-pointer">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
