@@ -49,8 +49,10 @@ ${knowhow}
 7. **CTA（行動喚起）**: 記事の最後には、「参考になったら『スキ』ボタンを押してもらえると励みになります！」「感想をコメントで教えてください」といった、note特有のコミュニケーションを促す一文を必ず入れてください。
 8. **SEO**: 記事の最後には、検索エンジン向けのメタディスクリプション（120文字）を生成してください。
 9. **ハッシュタグ**: noteで検索されやすい効果的なハッシュタグを3〜5個生成してください。（例: #note #副業）
+
 10. **文字数確保**: ${wordCount}文字以上を目安に、具体例や補足説明を加えて内容を充実させてください。
 11. **開始時の注意**: 返事は不要です。すぐに出力形式に従って書いてください。
+12. **画像プロンプト**: 記事の内容にマッチする見出し画像の生成用プロンプトを**英語で**作成してください。抽象的な概念ではなく、具体的な被写体、背景、スタイル（例: digital art, cinematic lighting）を指定してください。
 
 出力形式:
 (ここにマークダウン形式の本文)
@@ -58,6 +60,8 @@ ${knowhow}
 (ここにメタディスクリプション)
 ---
 (ここにハッシュタグ)
+---
+(ここに画像生成用プロンプト [英語])
 `;
 
         async function generateWithModel(modelName: string) {
@@ -100,17 +104,24 @@ ${knowhow}
             throw new Error(`All models failed. Last error: ${lastError.message}. Accessing: v1beta API.`);
         }
 
-        // 本文とメタディスクリプション、ハッシュタグの分離
+
+        // 本文とメタディスクリプション、ハッシュタグ、画像プロンプトの分離
         const parts = text.split('---');
         const markdown = parts[0].trim();
         let metaDescription = '';
         let hashtags: string[] = [];
+        let imagePrompt = '';
 
-        if (parts.length >= 3) {
-            // Body --- Meta --- Hashtags
+        if (parts.length >= 4) {
+            // Body --- Meta --- Hashtags --- ImagePrompt
             metaDescription = parts[1].trim();
             const tagsText = parts[2].trim();
-            // Extract strings starting with #
+            hashtags = tagsText.match(/#[^\s#]+/g) || [];
+            imagePrompt = parts[3].trim();
+        } else if (parts.length === 3) {
+            // Body --- Meta --- Hashtags (fallback)
+            metaDescription = parts[1].trim();
+            const tagsText = parts[2].trim();
             hashtags = tagsText.match(/#[^\s#]+/g) || [];
         } else if (parts.length === 2) {
             // Body --- Meta (fallback)
@@ -119,10 +130,13 @@ ${knowhow}
 
 
         // 画像生成用URL（Pollinations.aiを使用）
-        const encodedTitle = encodeURIComponent(selectedTitle || 'note article');
+        // 生成されたプロンプトがあればそれを使い、なければタイトルをフォールバックとして使う（ただしタイトルは英語に翻訳されていないので精度は下がる）
+        const finalPrompt = imagePrompt || `${selectedTitle} minimalist flat design illustration blog header soft colors`;
+        const encodedPrompt = encodeURIComponent(finalPrompt);
+
         // ランダムなシードを追加して、キャッシュバスティングと毎回異なる画像を生成
         const seed = Math.floor(Math.random() * 1000000);
-        const generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedTitle}%20minimalist%20flat%20design%20illustration%20blog%20header%20soft%20colors?width=1280&height=720&nologo=true&seed=${seed}`;
+        const generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}`;
 
         return {
             success: true,
