@@ -22,7 +22,7 @@ export function Loading({ message = '生成中...', overlay = false }: LoadingPr
     if (overlay) {
         return (
             <div className="loading-overlay">
-                <div className="bg-white rounded-2xl p-8 shadow-2xl animate-fade-in">
+                <div className="bg-white rounded-xl p-10 shadow-2xl animate-fade-in min-w-[300px]">
                     {content}
                 </div>
             </div>

@@ -74,8 +74,8 @@ export function BodyPreview() {
             <button
                 onClick={handleCopy}
                 className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 transform active:scale-[0.98] shadow-xl ${copied
-                        ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-emerald-900/50'
-                        : 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white shadow-purple-900/40 hover:opacity-90'
+                    ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-emerald-900/50'
+                    : 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white shadow-purple-900/40 hover:opacity-90'
                     }`}
             >
                 <div className="flex items-center justify-center gap-2">
@@ -98,8 +98,8 @@ export function BodyPreview() {
                 <button
                     onClick={() => setActiveTab('result')}
                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'result'
-                            ? 'bg-gray-800 text-white shadow-sm'
-                            : 'text-gray-500 hover:text-gray-300'
+                        ? 'bg-gray-800 text-white shadow-sm'
+                        : 'text-gray-500 hover:text-gray-300'
                         }`}
                 >
                     <FileEdit className="w-4 h-4" />
@@ -108,8 +108,8 @@ export function BodyPreview() {
                 <button
                     onClick={() => setActiveTab('preview')}
                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'preview'
-                            ? 'bg-gray-800 text-white shadow-sm'
-                            : 'text-gray-500 hover:text-gray-300'
+                        ? 'bg-gray-800 text-white shadow-sm'
+                        : 'text-gray-500 hover:text-gray-300'
                         }`}
                 >
                     <Eye className="w-4 h-4" />
@@ -118,8 +118,8 @@ export function BodyPreview() {
                 <button
                     onClick={() => setActiveTab('score')}
                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'score'
-                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm'
-                            : 'text-gray-500 hover:text-gray-300'
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm'
+                        : 'text-gray-500 hover:text-gray-300'
                         }`}
                 >
                     <BarChart2 className="w-4 h-4" />
@@ -149,9 +149,9 @@ export function BodyPreview() {
                 )}
 
                 {activeTab === 'preview' && (
-                    <div className="bg-white text-gray-900 rounded-xl p-8 shadow-xl">
-                        <div className="prose max-w-none">
-                            <h1 className="text-3xl font-bold mb-8">{selectedTitle}</h1>
+                    <div className="bg-white text-gray-900 rounded-xl p-8 md:p-12 shadow-xl border border-gray-200">
+                        <div className="prose prose-slate max-w-2xl mx-auto leading-loose">
+                            <h1 className="text-3xl font-bold mb-10 pb-4 border-b border-gray-200">{selectedTitle}</h1>
                             <ReactMarkdown>{body}</ReactMarkdown>
                         </div>
                     </div>

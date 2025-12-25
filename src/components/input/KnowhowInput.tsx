@@ -89,6 +89,7 @@ export function KnowhowInput() {
             <textarea
                 value={articleData.knowhow}
                 onChange={(e) => setKnowhow(e.target.value)}
+                rows={20}
                 placeholder="ここにあなたのノウハウや一次情報を入力してください。
 
 例：
