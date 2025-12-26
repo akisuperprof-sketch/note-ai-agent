@@ -179,8 +179,11 @@ ${knowhow}
             basePrompt = `${referenceDescription}, ${basePrompt}`;
         }
 
+
         // 日本語テキストをきれいに描画するためのFlux向けプロンプト構成
-        const finalPrompt = `text "${selectedTitle}" written in Japanese, ${basePrompt}, high quality typography, poster design`;
+        // "written in Japanese"を入れると逆に中国語風のフォントや造語になりやすいため削除し、
+        // 単純にタイトルの文字列のみを強調して配置するよう指示。
+        const finalPrompt = `text "${selectedTitle}", ${basePrompt}, typography, poster design`;
 
         const encodedPrompt = encodeURIComponent(finalPrompt);
 
