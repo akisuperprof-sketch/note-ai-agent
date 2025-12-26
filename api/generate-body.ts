@@ -182,11 +182,22 @@ ${knowhow}
 
 
 
+
         // すべてのモデルで共通して「テキストを含まない、文字配置に適したクリーンな画像」を生成する戦略に変更
         // これにより、AIによる日本語描画の文字化け（中華フォント化など）を完全に回避し、
         // フロントエンド側で正しくタイトルをオーバーレイ表示（合成）する「コンポジット戦略」をとる
 
-        const cleanMixPrompt = `${basePrompt}, minimalist, spacious, copy space, high quality, 8k, blog header background, no text, empty background`;
+        let cleanMixPrompt = '';
+        if (referenceDescription) {
+            // 参照画像あり：その特徴を最優先し、余計なスタイル指定（minimalist等）で上書きしないようにする
+            // ユーザーは「添付画像の画風」での生成を期待しているため
+            cleanMixPrompt = `(masterpiece, best quality), ${referenceDescription}, blog header background, 8k, no text, empty background`;
+            console.log('Using reference-focused prompt:', cleanMixPrompt);
+        } else {
+            // 参照画像なし：デフォルトのきれいな背景
+            cleanMixPrompt = `${basePrompt}, minimalist, spacious, copy space, high quality, 8k, blog header background, no text, empty background`;
+        }
+
         const encodedCleanPrompt = encodeURIComponent(cleanMixPrompt);
 
         // ランダムなシードを追加して、キャッシュバスティングと毎回異なる画像を生成
