@@ -194,12 +194,26 @@ export function BodyPreview() {
                             {generatedImageUrl ? (
                                 <>
 
+
                                     <img
                                         src={generatedImageUrl}
                                         alt="見出し画像"
                                         className={`w-full h-full object-cover transition-opacity duration-500 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
                                         onLoad={() => setIsImageLoading(false)}
                                     />
+
+                                    {/* Title Text Overlay Strategy: CSS Composite */}
+                                    {/* 画像の上にCSSでタイトルを合成することで、AIの文字化け（中華フォント問題）を100%回避する */}
+                                    {!isImageLoading && selectedTitle && (
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-none">
+                                            <div className="bg-black/40 backdrop-blur-[2px] p-6 rounded-xl border border-white/20 shadow-2xl animate-fade-in-up">
+                                                <h1 className="text-3xl md:text-4xl font-bold text-white text-center leading-relaxed tracking-wide drop-shadow-lg" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
+                                                    {selectedTitle}
+                                                </h1>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {generatedImageModel && (
                                         <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded backdrop-blur-sm z-10 pointer-events-none font-mono opacity-70 hover:opacity-100 transition-opacity">
                                             Model: {generatedImageModel}
