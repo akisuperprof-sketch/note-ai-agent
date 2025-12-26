@@ -202,6 +202,19 @@ export function BodyPreview() {
                                         onLoad={() => setIsImageLoading(false)}
                                     />
 
+
+                                    {/* 参照画像プレビュー（デバッグ兼確認用） */}
+                                    {articleData.referenceImage && (
+                                        <div className="absolute top-2 right-2 z-20 group/ref">
+                                            <div className="w-16 h-16 rounded-md overflow-hidden border-2 border-white/50 shadow-md bg-white">
+                                                <img src={articleData.referenceImage} alt="Reference" className="w-full h-full object-cover" />
+                                            </div>
+                                            <div className="absolute top-full right-0 mt-1 px-2 py-1 bg-black/70 text-white text-[10px] rounded opacity-0 group-hover/ref:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                                画風参照元
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Title Text Overlay Strategy: CSS Composite */}
                                     {/* 画像の上にCSSでタイトルを合成することで、AIの文字化け（中華フォント問題）を100%回避する */}
                                     {!isImageLoading && selectedTitle && (

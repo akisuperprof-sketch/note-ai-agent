@@ -30,8 +30,9 @@ export default defineEventHandler(async (event) => {
                     }
                 }];
 
+
                 const result = await visionModel.generateContent([
-                    "Describe the main character, art style, and color palette of this image in English. Focus on visual elements that can be used to recreate a similar style. Keep it concise (under 50 words).",
+                    "Analyze the artistic style of this image in detail. Focus ONLY on: art medium (e.g., watercolor, 3D render, line art, flat illustration, photograph), visual style (e.g., minimalist, anime, realistic, cartoon), color palette, and textures. Do NOT describe the subject in detail, just the STYLE using keywords.",
                     ...imageParts
                 ]);
                 referenceDescription = result.response.text();
@@ -187,11 +188,19 @@ ${knowhow}
         // これにより、AIによる日本語描画の文字化け（中華フォント化など）を完全に回避し、
         // フロントエンド側で正しくタイトルをオーバーレイ表示（合成）する「コンポジット戦略」をとる
 
+
         let cleanMixPrompt = '';
         if (referenceDescription) {
-            // 参照画像あり：その特徴を最優先し、余計なスタイル指定（minimalist等）で上書きしないようにする
-            // ユーザーは「添付画像の画風」での生成を期待しているため
-            cleanMixPrompt = `(masterpiece, best quality), ${referenceDescription}, blog header background, 8k, no text, empty background`;
+            // 参照画像あり：その特徴を最大限強調する
+            // 記事の内容（subject）と参照画像のスタイル（style）を明確に分離して結合する
+            // imagePromptにはGeminiが生成した「被写体」の描写が含まれている可能性が高いので、それをSubjectとして使うが、
+            // スタイル指定はreferenceDescriptionで上書きする構造にする。
+
+            // imagePromptからフォトリアル系の単語を除去（簡易的）
+            let safeSubject = imagePrompt.replace(/photorealistic|realistic|4k|photo|photography/gi, "");
+            if (!safeSubject) safeSubject = selectedTitle; // 万が一空ならタイトルを使う
+
+            cleanMixPrompt = `(style of: ${referenceDescription}:1.5), ${safeSubject}, no text, empty background`;
             console.log('Using reference-focused prompt:', cleanMixPrompt);
         } else {
             // 参照画像なし：デフォルトのきれいな背景
