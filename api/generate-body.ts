@@ -180,12 +180,19 @@ ${knowhow}
         }
 
 
-        // 日本語テキストをきれいに描画するためのFlux向けプロンプト構成
+
         // "written in Japanese"を入れると逆に中国語風のフォントや造語になりやすいため削除し、
         // 単純にタイトルの文字列のみを強調して配置するよう指示。
-        const finalPrompt = `text "${selectedTitle}", ${basePrompt}, typography, poster design`;
+        // ※ Pollinations系モデルは日本語描画が苦手なため、モデルに応じてプロンプトを切り替える
+        const fluxPrompt = `text "${selectedTitle}", ${basePrompt}, typography, poster design`;
+        const fluxEncoded = encodeURIComponent(fluxPrompt);
 
-        const encodedPrompt = encodeURIComponent(finalPrompt);
+        // テキストを描画しないクリーンな画像用プロンプト（Pollinations non-flux用）
+        const imageOnlyPrompt = `${basePrompt}, high quality, detailed, 8k`;
+        const imageOnlyEncoded = encodeURIComponent(imageOnlyPrompt);
+
+        // Googleモデル用（テキスト描画能力が高いと期待される場合）
+        const googlePrompt = `text "${selectedTitle}" written in Japanese, ${basePrompt}, high quality typography, poster design`;
 
         // ランダムなシードを追加して、キャッシュバスティングと毎回異なる画像を生成
 
@@ -213,9 +220,10 @@ ${knowhow}
                     try {
                         const model = genAI.getGenerativeModel({ model: strategy.model });
                         // 画像生成を試みる
+
                         // 現行SDKでは画像生成専用のレスポンス構造ではない場合が多いため
                         // 明確な成功以外は失敗とみなしてPollinationsへフォールバックさせる
-                        const result = await model.generateContent(finalPrompt);
+                        const result = await model.generateContent(googlePrompt);
                         // もしここで有効な画像バイナリが取得成功したらgeneratedImageUrlにセット（未実装：SDK仕様待ち）
                         throw new Error("Google model generation integration pending. Fallback to next.");
                     } catch (gErr) {
@@ -223,11 +231,13 @@ ${knowhow}
                         continue;
                     }
 
+
                 } else if (strategy.type === 'pollinations') {
                     // Pollinations AI (URL生成のみ行い、サーバーサイドfetchはしない)
                     // これによりタイムアウトを回避しつつ、指定モデルでの生成URLを発行する
                     const modelParam = strategy.model;
-                    generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=${modelParam}`;
+                    const promptToUse = modelParam.includes('flux') ? fluxEncoded : imageOnlyEncoded;
+                    generatedImageUrl = `https://image.pollinations.ai/prompt/${promptToUse}?width=1280&height=720&nologo=true&seed=${seed}&model=${modelParam}`;
                     usedModel = modelParam;
                     console.log(`Using Pollinations URL with model: ${modelParam}`);
                     break; // URL生成できたのでループ終了
@@ -239,9 +249,10 @@ ${knowhow}
             }
         }
 
+
         // 全て失敗した場合の最終フォールバック
         if (!generatedImageUrl) {
-            generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=flux`;
+            generatedImageUrl = `https://image.pollinations.ai/prompt/${fluxEncoded}?width=1280&height=720&nologo=true&seed=${seed}&model=flux`;
             usedModel = 'flux (fallback)';
         }
 
