@@ -31,8 +31,9 @@ export default defineEventHandler(async (event) => {
                 }];
 
 
+
                 const result = await visionModel.generateContent([
-                    "Analyze the artistic style of this image in detail. Focus ONLY on: art medium (e.g., watercolor, 3D render, line art, flat illustration, photograph), visual style (e.g., minimalist, anime, realistic, cartoon), color palette, and textures. Do NOT describe the subject in detail, just the STYLE using keywords.",
+                    "You are an expert prompt engineer for Stable Diffusion. Analyze this image and generate a comma-separated list of style keywords to recreate exactly this art style. Focus on: line weight (e.g., thick outlines, bold lines), coloring (e.g., flat color, pastel, cel shading), medium (e.g., vector art, sticker illustration, digital drawing), and vibe (e.g., kawaii, minimalist, simple). Do not describe the subject, ONLY the style keywords.",
                     ...imageParts
                 ]);
                 referenceDescription = result.response.text();
@@ -189,19 +190,20 @@ ${knowhow}
         // フロントエンド側で正しくタイトルをオーバーレイ表示（合成）する「コンポジット戦略」をとる
 
 
+
         let cleanMixPrompt = '';
         if (referenceDescription) {
-            // 参照画像あり：その特徴を最大限強調する
-            // 記事の内容（subject）と参照画像のスタイル（style）を明確に分離して結合する
-            // imagePromptにはGeminiが生成した「被写体」の描写が含まれている可能性が高いので、それをSubjectとして使うが、
-            // スタイル指定はreferenceDescriptionで上書きする構造にする。
+            // 参照画像あり：【再現度99%を目指す最強プロンプト構成】
+            // 1. ユーザーの期待（Subject）を維持しつつ
+            // 2. 参照画像のスタイル（Style）を強制適用する
+            // 3. 邪魔な「フォトリアル」「写真」要素を徹底排除するネガティブプロンプト的な構成を行う
 
-            // imagePromptからフォトリアル系の単語を除去（簡易的）
-            let safeSubject = imagePrompt.replace(/photorealistic|realistic|4k|photo|photography/gi, "");
-            if (!safeSubject) safeSubject = selectedTitle; // 万が一空ならタイトルを使う
+            let safeSubject = imagePrompt.replace(/photorealistic|realistic|4k|photo|photography|cinematic/gi, "");
+            if (!safeSubject) safeSubject = selectedTitle;
 
-            cleanMixPrompt = `(style of: ${referenceDescription}:1.5), ${safeSubject}, no text, empty background`;
-            console.log('Using reference-focused prompt:', cleanMixPrompt);
+            // スタイルの重みを最大化しつつ、具体的なタッチ（ベクター、フラット、太い線など）を強調
+            cleanMixPrompt = `(illustration, vector art, flat design:1.6), ${referenceDescription}, ${safeSubject}, (thick outlines, bold lines:1.4), simple background, no photorealistic, no 3d rendering, no shading`;
+            console.log('Using reference-focused prompt (High Fidelity):', cleanMixPrompt);
         } else {
             // 参照画像なし：デフォルトのきれいな背景
             cleanMixPrompt = `${basePrompt}, minimalist, spacious, copy space, high quality, 8k, blog header background, no text, empty background`;
