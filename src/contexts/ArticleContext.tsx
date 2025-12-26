@@ -23,7 +23,9 @@ export interface ArticleContextType {
     setOutline: (outline: OutlineSection[]) => void;
 
     setBody: (body: string, metaDescription?: string, hashtags?: string[]) => void;
+
     setGeneratedImageUrl: (url: string) => void;
+    setGeneratedImageModel: (model: string) => void;
     setReferenceImage: (base64OrUrl: string) => void;
 
     // 状態管理
@@ -83,8 +85,13 @@ export function ArticleProvider({ children }: { children: ReactNode }) {
     };
 
 
+
     const setGeneratedImageUrl = (url: string) => {
         setArticleData(prev => ({ ...prev, generatedImageUrl: url }));
+    };
+
+    const setGeneratedImageModel = (model: string) => {
+        setArticleData(prev => ({ ...prev, generatedImageModel: model }));
     };
 
     const setReferenceImage = (base64OrUrl: string) => {
@@ -163,8 +170,10 @@ export function ArticleProvider({ children }: { children: ReactNode }) {
                 setSelectedTitle,
                 setOutline,
 
+
                 setBody,
                 setGeneratedImageUrl,
+                setGeneratedImageModel,
                 setReferenceImage,
                 setCurrentStage,
                 setIsStepMode,

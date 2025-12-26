@@ -3,11 +3,12 @@ import ReactMarkdown from 'react-markdown';
 import { Copy, Download, Check, BarChart2, ExternalLink } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
+
 export function BodyPreview() {
     const { articleData } = useArticle();
 
 
-    const { body, metaDescription, hashtags, selectedTitle, generatedImageUrl } = articleData;
+    const { body, metaDescription, hashtags, selectedTitle, generatedImageUrl, generatedImageModel } = articleData;
     const [copied, setCopied] = useState(false);
     const [isImageLoading, setIsImageLoading] = useState(true);
 
@@ -192,12 +193,18 @@ export function BodyPreview() {
                         <div className="mb-10 aspect-video rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shadow-sm border border-gray-200 group relative">
                             {generatedImageUrl ? (
                                 <>
+
                                     <img
                                         src={generatedImageUrl}
                                         alt="見出し画像"
                                         className={`w-full h-full object-cover transition-opacity duration-500 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
                                         onLoad={() => setIsImageLoading(false)}
                                     />
+                                    {generatedImageModel && (
+                                        <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded backdrop-blur-sm z-10 pointer-events-none font-mono opacity-70 hover:opacity-100 transition-opacity">
+                                            Model: {generatedImageModel}
+                                        </div>
+                                    )}
                                     {isImageLoading && (
                                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50/80 animate-pulse">
                                             <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">

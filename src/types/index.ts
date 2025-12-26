@@ -79,7 +79,10 @@ export interface ArticleData {
     body: string;
     metaDescription: string;
     hashtags: string[];
+
     generatedImageUrl?: string;
+    // 使用された画像生成モデル名
+    generatedImageModel?: string;
     // 新機能: 参照画像（Base64 string）
     referenceImage?: string;
 
@@ -192,11 +195,14 @@ export interface BodyRequest {
 
 export interface BodyResponse {
     success: boolean;
+
     body?: {
         markdown: string;
         metaDescription: string;
         hashtags: string[];
         actualWordCount: number;
+        generatedImageUrl?: string;
+        generatedImageModel?: string;
     };
     error?: string;
 }

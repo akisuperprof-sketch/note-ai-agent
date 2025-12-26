@@ -26,10 +26,12 @@ function ArticleGenerator() {
     setIsStepMode,
     setIsGenerating,
 
+
     setGeneratedTitles,
     setOutline,
     setBody,
     setGeneratedImageUrl,
+    setGeneratedImageModel,
     setCompletedStages,
     resetFromStage,
     loadArticle,
@@ -147,9 +149,13 @@ function ArticleGenerator() {
       const res = await api.generateBody({ knowhow, selectedTitle, outline, settings, strategy, referenceImage });
 
       if (res.success && res.body) {
+
         setBody(res.body.markdown, res.body.metaDescription, res.body.hashtags);
         if (res.body.generatedImageUrl) {
           setGeneratedImageUrl(res.body.generatedImageUrl);
+        }
+        if (res.body.generatedImageModel) {
+          setGeneratedImageModel(res.body.generatedImageModel);
         }
         setCurrentStage('body');
         const newStages = Array.from(new Set([...completedStages, 'body'])) as GenerationStage[];
@@ -160,8 +166,10 @@ function ArticleGenerator() {
           ...articleData,
           body: res.body.markdown,
           metaDescription: res.body.metaDescription,
+
           hashtags: res.body.hashtags,
           generatedImageUrl: res.body.generatedImageUrl,
+          generatedImageModel: res.body.generatedImageModel,
           currentStage: 'body',
           completedStages: newStages,
         };
@@ -208,9 +216,13 @@ function ArticleGenerator() {
       if (!bodyRes.success || !bodyRes.body) throw new Error(bodyRes.error || 'Body generation failed');
 
 
+
       setBody(bodyRes.body.markdown, bodyRes.body.metaDescription, bodyRes.body.hashtags);
       if (bodyRes.body.generatedImageUrl) {
         setGeneratedImageUrl(bodyRes.body.generatedImageUrl);
+      }
+      if (bodyRes.body.generatedImageModel) {
+        setGeneratedImageModel(bodyRes.body.generatedImageModel);
       }
       setCurrentStage('body');
       const finalStages: GenerationStage[] = ['input', 'title', 'outline', 'body'];
@@ -233,9 +245,11 @@ function ArticleGenerator() {
         body: bodyRes.body.markdown,
         metaDescription: bodyRes.body.metaDescription,
         hashtags: bodyRes.body.hashtags,
+
         currentStage: 'body',
 
         generatedImageUrl: bodyRes.body.generatedImageUrl,
+        generatedImageModel: bodyRes.body.generatedImageModel,
         completedStages: finalStages,
       };
 

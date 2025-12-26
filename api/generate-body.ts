@@ -200,7 +200,9 @@ ${knowhow}
             { model: 'gemini-2.0-flash-exp', type: 'google' }        // フォールバック
         ];
 
+
         let generatedImageUrl = '';
+        let usedModel = '';
 
         for (const strategy of imageStrategies) {
             try {
@@ -226,6 +228,7 @@ ${knowhow}
                     // これによりタイムアウトを回避しつつ、指定モデルでの生成URLを発行する
                     const modelParam = strategy.model;
                     generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=${modelParam}`;
+                    usedModel = modelParam;
                     console.log(`Using Pollinations URL with model: ${modelParam}`);
                     break; // URL生成できたのでループ終了
                 }
@@ -239,6 +242,7 @@ ${knowhow}
         // 全て失敗した場合の最終フォールバック
         if (!generatedImageUrl) {
             generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=flux`;
+            usedModel = 'flux (fallback)';
         }
 
         return {
@@ -248,7 +252,8 @@ ${knowhow}
                 metaDescription: metaDescription,
                 hashtags: hashtags,
                 actualWordCount: markdown.length,
-                generatedImageUrl: generatedImageUrl
+                generatedImageUrl: generatedImageUrl,
+                generatedImageModel: usedModel
             }
         };
     } catch (e: any) {
