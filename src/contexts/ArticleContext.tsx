@@ -29,6 +29,7 @@ export interface ArticleContextType {
     setReferenceImage: (base64OrUrl: string) => void;
 
     // 状態管理
+    addLog: (category: string, message: string) => void;
     setCurrentStage: (stage: GenerationStage) => void;
     setIsStepMode: (isStepMode: boolean) => void;
     setIsGenerating: (isGenerating: boolean) => void;
@@ -159,6 +160,14 @@ export function ArticleProvider({ children }: { children: ReactNode }) {
         setArticleData(data);
     };
 
+    const addLog = (category: string, message: string) => {
+        const timestamp = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        setArticleData(prev => ({
+            ...prev,
+            logs: [...(prev.logs || []), { timestamp, category, message }]
+        }));
+    };
+
     return (
         <ArticleContext.Provider
             value={{
@@ -175,6 +184,7 @@ export function ArticleProvider({ children }: { children: ReactNode }) {
                 setGeneratedImageUrl,
                 setGeneratedImageModel,
                 setReferenceImage,
+                addLog,
                 setCurrentStage,
                 setIsStepMode,
                 setIsGenerating,

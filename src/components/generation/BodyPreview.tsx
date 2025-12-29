@@ -8,7 +8,7 @@ export function BodyPreview() {
     const { articleData } = useArticle();
 
 
-    const { body, metaDescription, hashtags, selectedTitle, generatedImageUrl, generatedImageModel } = articleData;
+    const { body, metaDescription, hashtags, selectedTitle, generatedImageUrl, generatedImageModel, outline, logs, settings } = articleData;
     const [copied, setCopied] = useState(false);
     const [isImageLoading, setIsImageLoading] = useState(true);
     const [currentImageUrl, setCurrentImageUrl] = useState('');
@@ -153,6 +153,60 @@ export function BodyPreview() {
 
     return (
         <div className="space-y-8 animate-fade-in">
+            {/* Article Structure Summary */}
+            <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                    <span className="text-xl">📝</span>
+                    <h3 className="font-bold text-emerald-800 text-lg">記事構成</h3>
+                </div>
+
+                <div className="mb-4 text-emerald-900 font-bold text-lg">
+                    「{selectedTitle}」
+                </div>
+
+                <div className="flex items-center gap-4 text-sm text-emerald-700 mb-4 opacity-80">
+                    <span>{outline.length}セクション</span>
+                    <span>•</span>
+                    <span>推定{settings.wordCount.toLocaleString()}文字</span>
+                </div>
+
+                <ul className="space-y-2">
+                    {outline.filter(s => s.level === 1).map((section, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-emerald-800">
+                            <span className="font-bold text-emerald-500 mt-1 text-xs">H2</span>
+                            <span>{section.heading}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
+            {/* Processing Logs */}
+            {logs && logs.length > 0 && (
+                <div className="bg-gray-50 border border-gray-100 rounded-xl p-6 relative overflow-hidden">
+                    <div className="flex items-center gap-2 mb-4 relative z-10">
+                        <span className="text-xl">📋</span>
+                        <h3 className="font-bold text-gray-700 text-lg">処理ログ</h3>
+                    </div>
+
+                    <div className="space-y-2 max-h-60 overflow-y-auto pr-2 relative z-10 custom-scrollbar">
+                        {logs.map((log, index) => (
+                            <div key={index} className="flex items-start gap-3 text-sm font-mono leading-relaxed group hover:bg-white/50 p-1 rounded transition-colors">
+                                <span className="text-gray-400 select-none whitespace-nowrap text-xs pt-0.5">{log.timestamp}</span>
+                                <span className={`font-bold whitespace-nowrap text-xs pt-0.5 px-1.5 rounded ${log.category === '[エラー]' ? 'bg-red-100 text-red-600' :
+                                        log.category === '[完了]' ? 'bg-green-100 text-green-600' :
+                                            'bg-indigo-50 text-indigo-500'
+                                    }`}>
+                                    {log.category.replace(/[\[\]]/g, '')}
+                                </span>
+                                <span className={log.category === '[エラー]' ? 'text-red-600' : 'text-gray-600'}>{log.message}</span>
+                            </div>
+                        ))}
+                    </div>
+                    {/* Decorative side bar */}
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-3/4 bg-gray-200/50 rounded-full" />
+                </div>
+            )}
+
             {/* Success Hero Section with Quality Score Summary */}
             <div className="text-center space-y-4 py-6 bg-gradient-to-b from-green-50/50 to-transparent rounded-2xl border border-green-100/50">
                 <div className="flex items-center justify-center gap-4 mb-2">

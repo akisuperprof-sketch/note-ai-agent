@@ -63,6 +63,15 @@ export interface OutlineSection {
 }
 
 /**
+ * 処理ログの定義
+ */
+export interface LogEntry {
+    timestamp: string; // HH:mm:ss
+    category: string;  // [分析], [構成作成], [記事執筆], [画像生成] etc.
+    message: string;
+}
+
+/**
  * 記事全体のデータ構造
  */
 export interface ArticleData {
@@ -85,6 +94,9 @@ export interface ArticleData {
     generatedImageModel?: string;
     // 新機能: 参照画像（Base64 string）
     referenceImage?: string;
+
+    // 処理ログ
+    logs: LogEntry[];
 
     // 状態管理
     currentStage: GenerationStage;
@@ -120,6 +132,7 @@ export const defaultArticleData: ArticleData = {
     metaDescription: '',
     hashtags: [],
     referenceImage: undefined,
+    logs: [],
     currentStage: 'input',
     isStepMode: false,
     isGenerating: false,

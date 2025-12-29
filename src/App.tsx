@@ -35,6 +35,7 @@ function ArticleGenerator() {
     setCompletedStages,
     resetFromStage,
     loadArticle,
+    addLog,
   } = useArticle();
 
   const {
@@ -96,18 +97,24 @@ function ArticleGenerator() {
     }
 
     setIsGenerating(true);
+    addLog('[分析]', '入力内容を分析中');
+
     try {
+      addLog('[構成作成]', '記事のタイトル候補を生成中');
       const res = await api.generateTitle({ knowhow, strategy, settings });
       if (res.success && res.titles) {
         setGeneratedTitles(res.titles);
         setCurrentStage('title');
         setCompletedStages(Array.from(new Set([...completedStages, 'title'])) as GenerationStage[]);
+        addLog('[構成作成]', `タイトル案を${res.titles.length}件生成しました`);
       } else {
         alert('タイトルの生成に失敗しました: ' + (res.error || '不明なエラー'));
+        addLog('[エラー]', 'タイトルの生成に失敗');
       }
     } catch (error) {
       alert('エラーが発生しました');
       console.error(error);
+      addLog('[エラー]', 'システムエラーが発生');
     } finally {
       setIsGenerating(false);
     }
@@ -120,18 +127,23 @@ function ArticleGenerator() {
     }
 
     setIsGenerating(true);
+    addLog('[構成作成]', '記事の見出し構成を設計中');
+
     try {
       const res = await api.generateOutline({ knowhow, selectedTitle, settings, strategy });
       if (res.success && res.outline?.sections) {
         setOutline(res.outline.sections);
         setCurrentStage('outline');
         setCompletedStages(Array.from(new Set([...completedStages, 'outline'])) as GenerationStage[]);
+        addLog('[構成作成]', '記事構成の設計完了');
       } else {
         alert('構成の生成に失敗しました: ' + (res.error || '不明なエラー'));
+        addLog('[エラー]', '構成の生成に失敗');
       }
     } catch (error) {
       alert('エラーが発生しました');
       console.error(error);
+      addLog('[エラー]', 'システムエラーが発生');
     } finally {
       setIsGenerating(false);
     }
@@ -145,14 +157,20 @@ function ArticleGenerator() {
 
 
     setIsGenerating(true);
+    addLog('[記事執筆]', `執筆開始: ${selectedTitle}`);
+    addLog('[記事執筆]', `${settings.wordCount}文字目標で記事を生成中...`);
+
     try {
       const res = await api.generateBody({ knowhow, selectedTitle, outline, settings, strategy, referenceImage });
 
       if (res.success && res.body) {
 
         setBody(res.body.markdown, res.body.metaDescription, res.body.hashtags);
+        addLog('[記事執筆]', `${res.body.actualWordCount}文字の記事を生成完了`);
+
         if (res.body.generatedImageUrl) {
           setGeneratedImageUrl(res.body.generatedImageUrl);
+          addLog('[画像生成]', 'アイキャッチ画像の生成完了');
         }
         if (res.body.generatedImageModel) {
           setGeneratedImageModel(res.body.generatedImageModel);
@@ -177,10 +195,12 @@ function ArticleGenerator() {
 
       } else {
         alert('本文の生成に失敗しました: ' + (res.error || '不明なエラー'));
+        addLog('[エラー]', '本文の生成に失敗');
       }
     } catch (error) {
       alert('エラーが発生しました');
       console.error(error);
+      addLog('[エラー]', 'システムエラーが発生');
     } finally {
       setIsGenerating(false);
     }
@@ -193,33 +213,43 @@ function ArticleGenerator() {
     }
 
     setIsGenerating(true);
+    addLog('[分析]', '入力内容を分析中');
+
     try {
       // 1. Title
       setLoadingMessage('記事のタイトルを考案中...');
+      addLog('[構成作成]', '記事のタイトルを考案中');
       const titleRes = await api.generateTitle({ knowhow, strategy, settings });
       if (!titleRes.success || !titleRes.titles?.length) throw new Error(titleRes.error || 'Title generation failed');
       const titles = titleRes.titles;
       const title = titles[0]; // Auto-select first
       setGeneratedTitles(titles);
+      addLog('[構成作成]', `タイトル決定: ${title}`);
 
       // 2. Outline
       setLoadingMessage('記事の構成を考えています...');
+      addLog('[構成作成]', '記事の見出し構成を設計中');
       const outlineRes = await api.generateOutline({ knowhow, selectedTitle: title, settings, strategy });
       if (!outlineRes.success || !outlineRes.outline?.sections) throw new Error(outlineRes.error || 'Outline generation failed');
       const sections = outlineRes.outline.sections;
       setOutline(sections);
+      addLog('[構成作成]', '記事構成の設計完了');
 
 
       // 3. Body
       setLoadingMessage('記事本文を執筆・推敲しています...');
+      addLog('[記事執筆]', '記事本文の執筆開始');
       const bodyRes = await api.generateBody({ knowhow, selectedTitle: title, outline: { sections }, settings, strategy, referenceImage });
       if (!bodyRes.success || !bodyRes.body) throw new Error(bodyRes.error || 'Body generation failed');
 
 
 
       setBody(bodyRes.body.markdown, bodyRes.body.metaDescription, bodyRes.body.hashtags);
+      addLog('[記事執筆]', `${bodyRes.body.actualWordCount}文字の記事を生成完了`);
+
       if (bodyRes.body.generatedImageUrl) {
         setGeneratedImageUrl(bodyRes.body.generatedImageUrl);
+        addLog('[画像生成]', 'アイキャッチ画像を生成中');
       }
       if (bodyRes.body.generatedImageModel) {
         setGeneratedImageModel(bodyRes.body.generatedImageModel);
@@ -230,7 +260,9 @@ function ArticleGenerator() {
 
       // 4. Image Generation (Mock)
       setLoadingMessage('見出し画像を生成中...');
+      // addLog('[画像生成]', 'アイキャッチ画像を生成中'); // Already done in backend call simulation
       await new Promise(resolve => setTimeout(resolve, 3000)); // 3s wait for mock image generation
+      addLog('[画像生成]', 'アイキャッチ画像生成完了');
 
       // 5. Post Preparation
       setLoadingMessage('note投稿準備中...');
@@ -255,12 +287,14 @@ function ArticleGenerator() {
 
       saveCurrentArticle(dataToSave);
       setLoadingMessage('すべての生成が完了しました！');
+      addLog('[完了]', 'すべての工程が完了しました');
       await new Promise(resolve => setTimeout(resolve, 800)); // Short wait to show completion
       setShowNoteTutorial(true);
 
     } catch (e: any) {
       alert('生成エラー: ' + e.message);
       console.error(e);
+      addLog('[エラー]', '生成中にエラーが発生しました');
     } finally {
       setIsGenerating(false);
     }
