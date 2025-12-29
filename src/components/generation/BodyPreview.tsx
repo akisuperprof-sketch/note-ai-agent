@@ -60,20 +60,7 @@ export function BodyPreview() {
         }
     };
 
-    const handleDownload = () => {
-        const contentToDownload = metaDescription
-            ? `${body}\n\n---\n\n${metaDescription}`
-            : body;
-        const blob = new Blob([contentToDownload], { type: 'text/markdown' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${selectedTitle || 'article'}.md`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    };
+
 
 
     // Word count calculation
