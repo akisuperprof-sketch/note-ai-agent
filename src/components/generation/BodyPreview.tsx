@@ -27,32 +27,6 @@ export function BodyPreview() {
         }
     }, [generatedImageUrl, generatedImageModel]);
 
-    // Force stop loading after 15 seconds to prevent eternal spinner
-    useEffect(() => {
-        if (isImageLoading) {
-            const timer = setTimeout(() => {
-                if (isImageLoading) {
-                    console.warn('Image loading timed out. Forcing display.');
-                    setIsImageLoading(false);
-                }
-            }, 15000);
-            return () => clearTimeout(timer);
-        }
-    }, [isImageLoading]);
-
-    const handleRegenerateImage = () => {
-        if (!currentImageUrl) return;
-        setIsImageLoading(true);
-        // Change seed to force regeneration
-        const newSeed = Math.floor(Math.random() * 1000000);
-
-        // When regenerating, aim to keep the current model but change the seed
-        // EXCEPT if the current model is failed, then we restart the chain?
-        // Let's just update the seed on the current URL
-        const newUrl = currentImageUrl.replace(/seed=\d+/, `seed=${newSeed}`);
-        setCurrentImageUrl(newUrl);
-    };
-
     const handleImageError = () => {
         console.warn(`Image failed to load: ${currentModel} (Attempt ${fallbackCount + 1})`);
 
@@ -80,6 +54,32 @@ export function BodyPreview() {
             // Optionally set an error state to show a "broken image" icon
         }
     };
+
+    const handleRegenerateImage = () => {
+        if (!currentImageUrl) return;
+        setIsImageLoading(true);
+        // Change seed to force regeneration
+        const newSeed = Math.floor(Math.random() * 1000000);
+
+        // When regenerating, aim to keep the current model but change the seed
+        // EXCEPT if the current model is failed, then we restart the chain?
+        // Let's just update the seed on the current URL
+        const newUrl = currentImageUrl.replace(/seed=\d+/, `seed=${newSeed}`);
+        setCurrentImageUrl(newUrl);
+    };
+
+    // Force stop loading after 20 seconds and switch to fallback
+    useEffect(() => {
+        if (isImageLoading) {
+            const timer = setTimeout(() => {
+                if (isImageLoading) {
+                    console.warn('Image loading timed out. Triggering fallback.');
+                    handleImageError();
+                }
+            }, 20000);
+            return () => clearTimeout(timer);
+        }
+    }, [isImageLoading, currentImageUrl]);
 
     // Show copy success state for 3 seconds
     useEffect(() => {
