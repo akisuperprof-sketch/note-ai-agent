@@ -200,6 +200,7 @@ export function BodyPreview() {
                                         alt="見出し画像"
                                         className={`w-full h-full object-cover transition-opacity duration-500 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
                                         onLoad={() => setIsImageLoading(false)}
+                                        onError={() => setIsImageLoading(false)}
                                     />
 
 
