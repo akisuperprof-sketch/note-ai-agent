@@ -119,7 +119,10 @@ ${knowhow}
 11. **開始時の注意**: 返事は不要です。すぐに出力形式に従って書いてください。
 
 
-12. **画像プロンプト**: ${referenceInstruction || ''} 記事の内容にマッチする見出し画像の生成用プロンプトを**英語で**作成してください。「文字」に関する指示は含めないでください（プログラム側でタイトルを合成します）。具体的な被写体、背景、スタイル（例: digital art, cinematic lighting, photorealistic）のみを記述してください。
+12. **画像プロンプト**: ${referenceInstruction || ''} 記事のタイトル「${selectedTitle}」を表現する見出し画像のプロンプトを**英語で**作成してください。
+    *   **必須**: "minimalist, flat design, vector art, soft colors, high quality" のような、スタイルを表す英単語をカンマ区切りで列挙する形式にしてください。
+    *   **禁止**: 文章（Sentence）にしないこと。日本語を含めないこと。"text", "word", "letter", "typography" などの文字要素を一切含めないこと。
+    *   **構成**: [主題(Subject)], [スタイル(Style)], [背景(Background)] の順で、合計20単語以内で簡潔に記述してください。
 
 出力形式:
 (ここにマークダウン形式の本文)

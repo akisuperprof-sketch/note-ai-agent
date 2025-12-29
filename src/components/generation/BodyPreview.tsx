@@ -13,12 +13,17 @@ export function BodyPreview() {
     const [isImageLoading, setIsImageLoading] = useState(true);
     const [currentImageUrl, setCurrentImageUrl] = useState('');
     const [currentModel, setCurrentModel] = useState('');
+    const [fallbackCount, setFallbackCount] = useState(0);
+
+    // Fallback models chain: user-preferred -> stable -> fast -> wildly different
+    const FALLBACK_MODELS = ['nano-banana-pro-preview', 'flux', 'turbo', 'paint'];
 
     useEffect(() => {
         if (generatedImageUrl) {
             setCurrentImageUrl(generatedImageUrl);
             setCurrentModel(generatedImageModel || '');
             setIsImageLoading(true);
+            setFallbackCount(0); // Reset fallback count on new image
         }
     }, [generatedImageUrl, generatedImageModel]);
 
@@ -27,8 +32,40 @@ export function BodyPreview() {
         setIsImageLoading(true);
         // Change seed to force regeneration
         const newSeed = Math.floor(Math.random() * 1000000);
+
+        // When regenerating, aim to keep the current model but change the seed
+        // EXCEPT if the current model is failed, then we restart the chain?
+        // Let's just update the seed on the current URL
         const newUrl = currentImageUrl.replace(/seed=\d+/, `seed=${newSeed}`);
         setCurrentImageUrl(newUrl);
+    };
+
+    const handleImageError = () => {
+        console.warn(`Image failed to load: ${currentModel} (Attempt ${fallbackCount + 1})`);
+
+        if (fallbackCount < FALLBACK_MODELS.length) {
+            const nextModel = FALLBACK_MODELS[fallbackCount];
+            console.log(`Switching to fallback model: ${nextModel}`);
+
+            // Construct new URL with the next model
+            // Check if URL already has a model param
+            let newUrl = '';
+            if (currentImageUrl.includes('model=')) {
+                newUrl = currentImageUrl.replace(/model=[^&]+/, `model=${nextModel}`);
+            } else {
+                newUrl = `${currentImageUrl}&model=${nextModel}`;
+            }
+
+            // Allow retry by updating state
+            setCurrentImageUrl(newUrl);
+            setCurrentModel(`${nextModel} (fallback)`);
+            setFallbackCount(prev => prev + 1);
+            // Keep isImageLoading true
+        } else {
+            console.error('All image generation fallbacks failed.');
+            setIsImageLoading(false); // Stop spinner
+            // Optionally set an error state to show a "broken image" icon
+        }
     };
 
     // Show copy success state for 3 seconds
@@ -232,19 +269,7 @@ export function BodyPreview() {
                                     alt="見出し画像"
                                     className={`w-full h-full object-cover transition-opacity duration-500 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
                                     onLoad={() => setIsImageLoading(false)}
-                                    onError={() => {
-                                        // Auto-fallback logic: if primary model fails, try flux
-                                        if (currentImageUrl && currentImageUrl.includes('model=flux')) {
-                                            // Already failed on fallback
-                                            setIsImageLoading(false);
-                                        } else {
-                                            console.log('Primary model failed, switching to fallback (flux)...');
-                                            const newUrl = currentImageUrl.replace(/model=[^&]+/, 'model=flux');
-                                            setCurrentImageUrl(newUrl);
-                                            setCurrentModel('flux (auto-fallback)');
-                                            // Keep loading true to show spinner while fallback loads
-                                        }
-                                    }}
+                                    onError={handleImageError}
                                 />
 
                                 {/* Overlay UI for Image Actions */}
