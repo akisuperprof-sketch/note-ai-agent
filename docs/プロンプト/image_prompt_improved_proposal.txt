@@ -1,0 +1,131 @@
+画像生成プロンプト管理ブロック
+（antigravity 用・保存＋採用 指示込み）
+────────────────────────
+
+目的：
+note運用において
+・第一段階：世界観・資産性を重視した「文字なし画像生成」
+・第二段階：一覧CTRを最大化する「文字ありサムネ画像生成」
+の2系統をテキスト資産として保存し、
+現行採用は第二段階版とする。
+
+運用ルール：
+・第一段階版は削除せず保存（将来切替・比較用）
+・第二段階版をデフォルト採用
+・章区切り/休憩カード用途では第一段階版を使用
+・noteサムネ用途では第二段階版を使用
+
+────────────────────────
+【第一段階版 画像生成プロンプト】
+（文字なし／資産用／保存のみ）
+────────────────────────
+
+用途：
+・章区切り
+・視覚的休憩
+・世界観維持
+・将来の再利用・横展開用
+
+Image Concept：
+文字を一切含まない、静かで信頼感のあるビジュアル。
+
+Image Prompt（英語）：
+A calm, minimalist editorial image with no text.
+
+A serene scene related to the article theme,
+photorealistic, soft natural light, cinematic realism.
+
+Quiet composition, generous negative space,
+gentle colors, refined atmosphere,
+a sense of trust, clarity, and calmness.
+
+No text, no typography, no symbols.
+Designed as a visual pause for reading.
+
+2025 modern aesthetic, subtle, timeless, non-trendy.
+
+Negative Prompt（英語）：
+text, letters, typography, captions,
+logos, branding, watermark,
+poster design, advertisement style,
+cluttered background, busy layout,
+flashy effects, exaggerated contrast
+
+保存指定：
+このプロンプトは
+「第一段階版画像生成プロンプト」として保持し、
+デフォルト生成には使用しない。
+
+────────────────────────
+【第二段階版 画像生成プロンプト】
+（文字あり／noteサムネ専用／現行採用）
+────────────────────────
+
+用途：
+・noteサムネイル
+・一覧表示でのCTR最大化
+・HowTo/解説/悩み解決系記事
+
+サムネ用キャッチコピー生成ルール：
+・日本語のみ
+・最大20文字（推奨12〜18）
+・英字、絵文字禁止
+・記号は「」または！を最大1つ
+・価値が一瞬で伝わる断定/ベネフィット形
+・誇大表現（最強/絶対/100%）は禁止
+
+モード判定ルール：
+・章区切り/休憩用途 → 第一段階版
+・以下語を含む場合 → 第二段階版
+（作り方,やり方,方法,手順,解説,コツ,原因,対策,改善,比較,選び方,おすすめ,入門,初心者,最新,2025）
+・迷った場合 → 第一段階版
+
+Image Prompt（英語）：
+A calm, premium thumbnail image for a note article,
+designed with readable Japanese text.
+
+Base visual:
+A minimalist, serene scene related to the article theme.
+Photorealistic, cinematic realism, 2025 modern aesthetic.
+
+Composition:
+Main subject positioned slightly to the right.
+Large clean negative space on the left for text placement.
+
+Japanese text overlay:
+Add ONE short Japanese title text in the left empty space.
+Maximum 20 Japanese characters.
+No English, no emojis, no extra captions.
+
+Typography:
+Simple modern Japanese font.
+Soft white or warm beige color.
+High contrast for mobile readability.
+Flat text only (no heavy shadow, no outline, no glow).
+
+Constraints:
+Text must be perfectly readable.
+No distortion, no broken characters.
+No logos, no watermarks.
+No poster or advertisement feeling.
+Editorial, quiet, trustworthy, refined.
+
+Negative Prompt（英語）：
+broken text, garbled characters, unreadable letters,
+multiple text blocks, subtitles, paragraphs,
+logos, branding, watermark,
+poster design, flashy typography,
+cluttered background, busy layout,
+overly dramatic effects
+
+採用指定：
+このプロンプトを
+「第二段階版画像生成プロンプト」として
+現行デフォルト採用とする。
+
+────────────────────────
+管理メモ：
+・第一段階版＝世界観・資産
+・第二段階版＝成果・CTR
+・両方を保持し、用途で切替
+────────────────────────
