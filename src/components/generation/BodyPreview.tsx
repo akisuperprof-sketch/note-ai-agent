@@ -63,8 +63,24 @@ export function BodyPreview() {
 
 
 
+    const handleDownload = () => {
+        const contentToDownload = metaDescription
+            ? `${body}\n\n---\n\n${metaDescription}`
+            : body;
+        const blob = new Blob([contentToDownload], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${selectedTitle || 'article'}.md`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     // Word count calculation
     const wordCount = body ? body.length : 0;
+
 
     // Mock score logic (can be randomized or based on actual content analysis in future)
     // S+: 96-100, S: 90-95, A+: 80-89, A: 70-79, B: 50-69, C: 0-49
@@ -312,6 +328,16 @@ export function BodyPreview() {
                     )}
                 </div>
 
+            </div>
+
+            <div className="flex justify-end pt-4">
+                <button
+                    onClick={handleDownload}
+                    className="text-sm text-gray-500 hover:text-gray-900 flex items-center gap-2 transition-colors py-2 px-4 rounded-lg hover:bg-gray-100"
+                >
+                    <Download className="w-4 h-4" />
+                    Markdown形式でダウンロード
+                </button>
             </div>
         </div>
     );
