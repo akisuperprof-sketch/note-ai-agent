@@ -245,9 +245,9 @@ ${knowhow}
         // 画像生成モデルの優先順位設定
         // 画像生成モデルの優先順位設定
         const imageStrategies = [
-            { model: 'magen-3.0-generate-001', type: 'google' },     // 最優先
-            { model: 'gemini-3-pro-image-preview', type: 'google' }, // 2番目
-            { model: 'nano-banana-pro-preview', type: 'pollinations' }, // 3番目 (User preferred)
+            { model: 'gemini-3-pro-image-preview', type: 'pollinations' }, // 最優先 (ユーザー指定)
+            { model: 'magen-3.0-generate-001', type: 'google' },     // 次点
+            { model: 'nano-banana-pro-preview', type: 'pollinations' }, // 3番目
             { model: 'gemini-2.0-flash-exp', type: 'google' }        // フォールバック
         ];
 
