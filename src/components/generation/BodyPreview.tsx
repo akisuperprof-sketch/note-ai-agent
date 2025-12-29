@@ -182,97 +182,85 @@ export function BodyPreview() {
                 </div>
             </div>
 
-            {/* Note Preview Content */}
-            <div className="bg-white text-gray-900 rounded-xl p-8 md:p-12 shadow-xl border border-gray-200">
-                <div className="prose prose-slate max-w-2xl mx-auto leading-loose">
-                    <h1 className="text-3xl font-bold mb-10 pb-4 border-b border-gray-200">{selectedTitle}</h1>
+            {/* Note Preview Content - Note-like UI Implementation */}
+            <div className="bg-white text-[#333] rounded-xl shadow-xl border border-gray-200 overflow-hidden mx-auto max-w-[800px]"> {/* Width adjusted for note-like feel */}
 
-                    <div className="note-preview-content">
-
-                        {/* Generated Image Preview Area */}
-                        <div className="mb-10 aspect-video rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shadow-sm border border-gray-200 group relative">
-                            {generatedImageUrl ? (
-                                <>
-
-
-                                    <img
-                                        src={generatedImageUrl}
-                                        alt="見出し画像"
-                                        className={`w-full h-full object-cover transition-opacity duration-500 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
-                                        onLoad={() => setIsImageLoading(false)}
-                                        onError={() => setIsImageLoading(false)}
-                                    />
-
-
-                                    {/* 参照画像プレビュー（デバッグ兼確認用） */}
-                                    {articleData.referenceImage && (
-                                        <div className="absolute top-2 right-2 z-20 group/ref">
-                                            <div className="w-16 h-16 rounded-md overflow-hidden border-2 border-white/50 shadow-md bg-white">
-                                                <img src={articleData.referenceImage} alt="Reference" className="w-full h-full object-cover" />
-                                            </div>
-                                            <div className="absolute top-full right-0 mt-1 px-2 py-1 bg-black/70 text-white text-[10px] rounded opacity-0 group-hover/ref:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                                                画風参照元
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Title Text Overlay Strategy: CSS Composite */}
-                                    {/* 画像の上にCSSでタイトルを合成することで、AIの文字化け（中華フォント問題）を100%回避する */}
-                                    {!isImageLoading && selectedTitle && (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-none">
-                                            <div className="bg-black/40 backdrop-blur-[2px] p-6 rounded-xl border border-white/20 shadow-2xl animate-fade-in-up">
-                                                <h1 className="text-3xl md:text-4xl font-bold text-white text-center leading-relaxed tracking-wide drop-shadow-lg" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
-                                                    {selectedTitle}
-                                                </h1>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {generatedImageModel && (
-                                        <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded backdrop-blur-sm z-10 pointer-events-none font-mono opacity-70 hover:opacity-100 transition-opacity">
-                                            Model: {generatedImageModel}
-                                        </div>
-                                    )}
-                                    {isImageLoading && (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50/80 animate-pulse">
-                                            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
-                                                <span className="text-3xl animate-bounce">🎨</span>
-                                            </div>
-                                            <p className="text-gray-500 font-bold mb-1">画像を生成中...</p>
-                                            <p className="text-xs text-gray-400">AIが記事の世界観を描いています</p>
-                                        </div>
-                                    )}
-                                    <div className={`absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 ${isImageLoading ? 'hidden' : ''}`}>
-                                        <button className="bg-white text-gray-900 px-4 py-2 rounded-full font-bold text-sm hover:bg-gray-100 transition-colors">
-                                            再生成する
-                                        </button>
-                                        <a href={generatedImageUrl} download="eyecatch.png" className="bg-[#41c9b4] text-white px-4 py-2 rounded-full font-bold text-sm hover:opacity-90 transition-opacity flex items-center gap-2">
-                                            <Download className="w-4 h-4" />
-                                            保存する
-                                        </a>
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="text-center text-gray-400 animate-pulse">
-                                    <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
-                                        <span className="text-2xl animate-spin">⏳</span>
-                                    </div>
-                                    <p className="text-sm font-bold text-gray-500">見出し画像を準備中...</p>
-                                </div>
-                            )}
+                {/* Note Header Area */}
+                <div className="p-8 md:p-12 md:pb-0 pb-0 bg-white">
+                    {/* User Info */}
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-full bg-[#9c88ff] flex items-center justify-center text-white font-bold text-lg">
+                            あ
                         </div>
+                        <div>
+                            <div className="font-bold text-gray-800 text-sm">あなた</div>
+                            <div className="text-gray-400 text-xs flex items-center gap-2">
+                                <span>{new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                <span>·</span>
+                                <span>{wordCount}文字</span>
+                            </div>
+                        </div>
+                    </div>
 
+                    {/* Title */}
+                    <h1 className="text-[28px] md:text-[32px] font-bold leading-tight tracking-tight text-[#222] mb-8">
+                        {selectedTitle}
+                    </h1>
+
+                    {/* Generated Image (Eyecatch) */}
+                    <div className="mb-10 w-full aspect-video bg-gray-50 rounded-md overflow-hidden border border-gray-100 relative group">
+                        {generatedImageUrl ? (
+                            <>
+                                <img
+                                    src={generatedImageUrl}
+                                    alt="見出し画像"
+                                    className={`w-full h-full object-cover transition-opacity duration-500 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
+                                    onLoad={() => setIsImageLoading(false)}
+                                    onError={() => setIsImageLoading(false)}
+                                />
+
+                                {/* Overlay UI for Image Actions */}
+                                <div className={`absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 ${isImageLoading ? 'hidden' : ''}`}>
+                                    <button className="bg-white/90 text-xs font-bold px-3 py-1.5 rounded-full hover:bg-white transition-colors">
+                                        再生成
+                                    </button>
+                                    <a href={generatedImageUrl} download="eyecatch.png" className="bg-[#41c9b4] text-white text-xs font-bold px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity flex items-center gap-1">
+                                        <Download className="w-3 h-3" />
+                                        保存
+                                    </a>
+                                </div>
+                                {generatedImageModel && (
+                                    <div className="absolute bottom-2 right-2 bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded backdrop-blur-sm pointer-events-none opacity-60">
+                                        {generatedImageModel}
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-gray-300">
+                                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+                                    <span className="text-xl">🖼️</span>
+                                </div>
+                                <span className="text-xs">画像生成中...</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Main Body Content */}
+                <div className="px-8 md:px-12 pb-12">
+                    <div className="prose prose-lg max-w-none prose-headings:text-[#222] prose-p:text-[#222] prose-strong:text-[#222]">
                         <ReactMarkdown
                             components={{
-                                h2: ({ node, ...props }) => <h2 className="text-2xl font-bold mt-12 mb-6 text-gray-900 border-b border-gray-200 pb-2" {...props} />,
-                                h3: ({ node, ...props }) => <h3 className="text-xl font-bold mt-8 mb-4 text-gray-900 border-l-4 border-green-500 pl-3" {...props} />,
-                                p: ({ node, ...props }) => <p className="leading-loose text-gray-800 mb-6 text-[17px]" {...props} />,
-                                ul: ({ node, ...props }) => <ul className="list-disc list-inside space-y-2 mb-6 bg-gray-50 p-6 rounded-lg border border-gray-100" {...props} />,
-                                li: ({ node, ...props }) => <li className="text-gray-700 leading-relaxed" {...props} />,
-                                strong: ({ node, ...props }) => <strong className="font-bold text-gray-900 bg-yellow-100 px-1" {...props} />,
-                                blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-gray-300 pl-4 py-2 my-6 text-gray-500 italic bg-gray-50 pr-4" {...props} />,
-                                a: ({ node, ...props }) => <a className="text-green-600 hover:text-green-700 underline underline-offset-4" {...props} />,
-                                hr: ({ node, ...props }) => <hr className="my-8 border-gray-200" {...props} />
+                                h1: ({ node, ...props }) => <h1 className="hidden" {...props} />, // Main title is already shown above
+                                h2: ({ node, ...props }) => <h2 className="text-[24px] font-bold mt-12 mb-6 leading-snug" {...props} />,
+                                h3: ({ node, ...props }) => <h3 className="text-[20px] font-bold mt-10 mb-4 leading-snug" {...props} />,
+                                p: ({ node, ...props }) => <p className="text-[17px] leading-[1.9] mb-8 tracking-wide text-[#333]" {...props} />,
+                                ul: ({ node, ...props }) => <ul className="list-disc list-outside ml-6 space-y-2 mb-8 text-[17px] text-[#333]" {...props} />,
+                                li: ({ node, ...props }) => <li className="leading-relaxed pl-1" {...props} />,
+                                strong: ({ node, ...props }) => <strong className="font-bold bg-[linear-gradient(transparent_60%,#ffff66_60%)] px-0.5" {...props} />, // Highlighter style
+                                blockquote: ({ node, ...props }) => <blockquote className="border-l-[3px] border-[#ddd] pl-4 my-8 text-gray-500 italic" {...props} />,
+                                a: ({ node, ...props }) => <a className="text-[#41c9b4] hover:underline underline-offset-2 decoration-[#41c9b4]/50" {...props} />,
+                                hr: ({ node, ...props }) => <hr className="my-12 border-gray-200" {...props} />
                             }}
                         >
                             {body}
@@ -280,30 +268,29 @@ export function BodyPreview() {
                     </div>
 
                     {metaDescription && (
-                        <div className="mt-12 p-6 bg-gray-50 rounded-xl border border-gray-200">
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">SEO Meta Description</h3>
+                        <div className="mt-16 p-5 bg-[#f9f9f9] rounded-lg border border-[#eee]">
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">SEO Meta Description</h3>
                                 <button
                                     onClick={() => {
                                         navigator.clipboard.writeText(metaDescription);
-                                        // Optional: show small toast or feedback
+                                        setCopied(true);
                                     }}
-                                    className="text-xs text-green-600 font-bold hover:text-green-700 flex items-center gap-1 bg-white px-2 py-1 rounded shadow-sm border border-green-100"
+                                    className="text-xs text-gray-400 hover:text-[#41c9b4] flex items-center gap-1 transition-colors"
                                 >
                                     <Copy className="w-3 h-3" />
-                                    コピー
                                 </button>
                             </div>
-                            <p className="text-gray-700 leading-relaxed text-sm font-medium">
+                            <p className="text-gray-600 text-sm leading-relaxed">
                                 {metaDescription}
                             </p>
                         </div>
                     )}
 
                     {hashtags && hashtags.length > 0 && (
-                        <div className="mt-12 pt-8 border-t border-gray-100 flex flex-wrap gap-2">
+                        <div className="mt-8 flex flex-wrap gap-2">
                             {hashtags.map((tag, index) => (
-                                <span key={index} className="text-gray-500 hover:text-gray-900 cursor-pointer">
+                                <span key={index} className="text-[#999] text-sm hover:text-[#41c9b4] cursor-pointer transition-colors">
                                     {tag}
                                 </span>
                             ))}
@@ -311,16 +298,6 @@ export function BodyPreview() {
                     )}
                 </div>
 
-            </div>
-
-            <div className="flex justify-end pt-4">
-                <button
-                    onClick={handleDownload}
-                    className="text-sm text-gray-500 hover:text-white flex items-center gap-2 transition-colors"
-                >
-                    <Download className="w-4 h-4" />
-                    Markdownをダウンロード
-                </button>
             </div>
         </div>
     );
