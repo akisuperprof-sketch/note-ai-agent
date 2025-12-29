@@ -278,6 +278,27 @@ export function BodyPreview() {
                         </ReactMarkdown>
                     </div>
 
+                    {metaDescription && (
+                        <div className="mt-12 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">SEO Meta Description</h3>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(metaDescription);
+                                        // Optional: show small toast or feedback
+                                    }}
+                                    className="text-xs text-green-600 font-bold hover:text-green-700 flex items-center gap-1 bg-white px-2 py-1 rounded shadow-sm border border-green-100"
+                                >
+                                    <Copy className="w-3 h-3" />
+                                    コピー
+                                </button>
+                            </div>
+                            <p className="text-gray-700 leading-relaxed text-sm font-medium">
+                                {metaDescription}
+                            </p>
+                        </div>
+                    )}
+
                     {hashtags && hashtags.length > 0 && (
                         <div className="mt-12 pt-8 border-t border-gray-100 flex flex-wrap gap-2">
                             {hashtags.map((tag, index) => (

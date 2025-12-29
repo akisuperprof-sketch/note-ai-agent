@@ -58,6 +58,15 @@ export default defineEventHandler(async (event) => {
         }
 
         const wordCount = settings?.wordCount || 2500;
+        // 出力形式:
+        // (ここにマークダウン形式の本文)
+        // [[SECTION_DIVIDER]]
+        // (ここにメタディスクリプション)
+        // [[SECTION_DIVIDER]]
+        // (ここにハッシュタグ)
+        // [[SECTION_DIVIDER]]
+        // (ここに画像生成用プロンプト [英語])
+        // `;
         const prompt = `
 あなたはプロのWebライター、そして熱狂的なファンを持つnoteクリエイターです。
 以下の構成案に基づき、読者の心を動かし、行動を変える強力なnote記事を執筆してください。
@@ -96,11 +105,11 @@ ${knowhow}
 
 出力形式:
 (ここにマークダウン形式の本文)
----
+[[SECTION_DIVIDER]]
 (ここにメタディスクリプション)
----
+[[SECTION_DIVIDER]]
 (ここにハッシュタグ)
----
+[[SECTION_DIVIDER]]
 (ここに画像生成用プロンプト [英語])
 `;
 
@@ -146,7 +155,7 @@ ${knowhow}
 
 
         // 本文とメタディスクリプション、ハッシュタグ、画像プロンプトの分離
-        const parts = text.split('---');
+        const parts = text.split('[[SECTION_DIVIDER]]');
         const markdown = parts[0].trim();
         let metaDescription = '';
         let hashtags: string[] = [];
