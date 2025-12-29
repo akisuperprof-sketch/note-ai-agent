@@ -16,7 +16,7 @@ export function BodyPreview() {
     const [fallbackCount, setFallbackCount] = useState(0);
 
     // Fallback models chain: user-preferred -> stable -> fast -> wildly different
-    const FALLBACK_MODELS = ['turbo', 'paint', 'midjourney', 'surreal'];
+    const FALLBACK_MODELS = ['nano-banana-pro-preview', 'flux', 'turbo', 'paint'];
 
     useEffect(() => {
         if (generatedImageUrl) {
