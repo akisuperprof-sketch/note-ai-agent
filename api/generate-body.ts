@@ -227,7 +227,7 @@ ${knowhow}
         const imageStrategies = [
             { model: 'magen-3.0-generate-001', type: 'google' },     // 最優先
             { model: 'gemini-3-pro-image-preview', type: 'google' }, // 2番目
-            { model: 'flux', type: 'pollinations' }, // 3番目 (Stable)
+            { model: 'nano-banana-pro-preview', type: 'pollinations' }, // 3番目 (User preferred)
             { model: 'gemini-2.0-flash-exp', type: 'google' }        // フォールバック
         ];
 
