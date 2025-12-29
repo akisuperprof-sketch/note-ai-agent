@@ -228,7 +228,9 @@ ${knowhow}
             if (!safeSubject) safeSubject = selectedTitle;
 
             // スタイルの重みを最大化しつつ、具体的なタッチ（ベクター、フラット、太い線など）を強調
-            cleanMixPrompt = `(illustration, vector art, flat design:1.6), ${referenceDescription}, ${safeSubject}, (thick outlines, bold lines:1.4), simple background, no photorealistic, no 3d rendering, no shading`;
+            // descriptionが長すぎるとURLエラーになるため、500文字でカットする
+            const safeDescription = referenceDescription.slice(0, 500);
+            cleanMixPrompt = `(illustration, vector art, flat design:1.6), ${safeDescription}, ${safeSubject}, (thick outlines, bold lines:1.4), simple background, no photorealistic, no 3d rendering, no shading`;
             console.log('Using reference-focused prompt (High Fidelity):', cleanMixPrompt);
         } else {
             // 参照画像なし：デフォルトのきれいな背景
@@ -242,9 +244,9 @@ ${knowhow}
 
         // 画像生成モデルの優先順位設定
         const imageStrategies = [
-            { model: 'magen-3.0-generate-001', type: 'google' },     // 最優先
-            { model: 'gemini-3-pro-image-preview', type: 'google' }, // 2番目
-            { model: 'nano-banana-pro-preview', type: 'pollinations' }, // 3番目 (User preferred)
+            { model: 'flux', type: 'pollinations' },                 // 最優先 (安定性重視)
+            { model: 'magen-3.0-generate-001', type: 'google' },     // 次点
+            { model: 'gemini-3-pro-image-preview', type: 'google' }, // 3番目
             { model: 'gemini-2.0-flash-exp', type: 'google' }        // フォールバック
         ];
 

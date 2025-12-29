@@ -16,7 +16,7 @@ export function BodyPreview() {
     const [fallbackCount, setFallbackCount] = useState(0);
 
     // Fallback models chain: user-preferred -> stable -> fast -> wildly different
-    const FALLBACK_MODELS = ['nano-banana-pro-preview', 'flux', 'turbo', 'paint'];
+    const FALLBACK_MODELS = ['turbo', 'paint', 'midjourney', 'surreal'];
 
     useEffect(() => {
         if (generatedImageUrl) {
@@ -26,6 +26,19 @@ export function BodyPreview() {
             setFallbackCount(0); // Reset fallback count on new image
         }
     }, [generatedImageUrl, generatedImageModel]);
+
+    // Force stop loading after 15 seconds to prevent eternal spinner
+    useEffect(() => {
+        if (isImageLoading) {
+            const timer = setTimeout(() => {
+                if (isImageLoading) {
+                    console.warn('Image loading timed out. Forcing display.');
+                    setIsImageLoading(false);
+                }
+            }, 15000);
+            return () => clearTimeout(timer);
+        }
+    }, [isImageLoading]);
 
     const handleRegenerateImage = () => {
         if (!currentImageUrl) return;
@@ -193,8 +206,8 @@ export function BodyPreview() {
                             <div key={index} className="flex items-start gap-3 text-sm font-mono leading-relaxed group hover:bg-white/50 p-1 rounded transition-colors">
                                 <span className="text-gray-400 select-none whitespace-nowrap text-xs pt-0.5">{log.timestamp}</span>
                                 <span className={`font-bold whitespace-nowrap text-xs pt-0.5 px-1.5 rounded ${log.category === '[エラー]' ? 'bg-red-100 text-red-600' :
-                                        log.category === '[完了]' ? 'bg-green-100 text-green-600' :
-                                            'bg-indigo-50 text-indigo-500'
+                                    log.category === '[完了]' ? 'bg-green-100 text-green-600' :
+                                        'bg-indigo-50 text-indigo-500'
                                     }`}>
                                     {log.category.replace(/[\[\]]/g, '')}
                                 </span>
@@ -321,10 +334,21 @@ export function BodyPreview() {
                                 <img
                                     src={currentImageUrl || generatedImageUrl}
                                     alt="見出し画像"
-                                    className={`w-full h-full object-cover transition-opacity duration-500 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
+                                    className={`w-full h-full object-cover transition-opacity duration-500 ${isImageLoading ? 'opacity-50 blur-sm' : 'opacity-100'}`}
                                     onLoad={() => setIsImageLoading(false)}
                                     onError={handleImageError}
                                 />
+
+                                {/* Loading Spinner Overlay */}
+                                {isImageLoading && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50/50 backdrop-blur-sm z-10">
+                                        <div className="w-12 h-12 border-4 border-[#41c9b4] border-t-transparent rounded-full animate-spin mb-3"></div>
+                                        <span className="text-sm font-bold text-gray-500 animate-pulse">
+                                            画像を生成中...
+                                            {fallbackCount > 0 && <span className="block text-xs font-normal mt-1 opacity-80">(再試行 {fallbackCount})</span>}
+                                        </span>
+                                    </div>
+                                )}
 
                                 {/* Overlay UI for Image Actions */}
                                 <div className={`absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 ${isImageLoading ? 'hidden' : ''}`}>
@@ -349,7 +373,7 @@ export function BodyPreview() {
                                 <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-2">
                                     <span className="text-xl">🖼️</span>
                                 </div>
-                                <span className="text-xs">画像生成中...</span>
+                                <span className="text-xs">画像生成待機中...</span>
                             </div>
                         )}
                     </div>
