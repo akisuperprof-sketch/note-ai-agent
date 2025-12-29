@@ -11,12 +11,25 @@ export function BodyPreview() {
     const { body, metaDescription, hashtags, selectedTitle, generatedImageUrl, generatedImageModel } = articleData;
     const [copied, setCopied] = useState(false);
     const [isImageLoading, setIsImageLoading] = useState(true);
+    const [currentImageUrl, setCurrentImageUrl] = useState('');
+    const [currentModel, setCurrentModel] = useState('');
 
     useEffect(() => {
         if (generatedImageUrl) {
+            setCurrentImageUrl(generatedImageUrl);
+            setCurrentModel(generatedImageModel || '');
             setIsImageLoading(true);
         }
-    }, [generatedImageUrl]);
+    }, [generatedImageUrl, generatedImageModel]);
+
+    const handleRegenerateImage = () => {
+        if (!currentImageUrl) return;
+        setIsImageLoading(true);
+        // Change seed to force regeneration
+        const newSeed = Math.floor(Math.random() * 1000000);
+        const newUrl = currentImageUrl.replace(/seed=\d+/, `seed=${newSeed}`);
+        setCurrentImageUrl(newUrl);
+    };
 
     // Show copy success state for 3 seconds
     useEffect(() => {
@@ -212,26 +225,40 @@ export function BodyPreview() {
                         {generatedImageUrl ? (
                             <>
                                 <img
-                                    src={generatedImageUrl}
+                                    src={currentImageUrl || generatedImageUrl}
                                     alt="見出し画像"
                                     className={`w-full h-full object-cover transition-opacity duration-500 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
                                     onLoad={() => setIsImageLoading(false)}
-                                    onError={() => setIsImageLoading(false)}
+                                    onError={() => {
+                                        // Auto-fallback logic: if primary model fails, try flux
+                                        if (currentImageUrl && currentImageUrl.includes('model=flux')) {
+                                            // Already failed on fallback
+                                            setIsImageLoading(false);
+                                        } else {
+                                            console.log('Primary model failed, switching to fallback (flux)...');
+                                            const newUrl = currentImageUrl.replace(/model=[^&]+/, 'model=flux');
+                                            setCurrentImageUrl(newUrl);
+                                            setCurrentModel('flux (auto-fallback)');
+                                            // Keep loading true to show spinner while fallback loads
+                                        }
+                                    }}
                                 />
 
                                 {/* Overlay UI for Image Actions */}
                                 <div className={`absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 ${isImageLoading ? 'hidden' : ''}`}>
-                                    <button className="bg-white/90 text-xs font-bold px-3 py-1.5 rounded-full hover:bg-white transition-colors">
+                                    <button
+                                        onClick={handleRegenerateImage}
+                                        className="bg-white/90 text-xs font-bold px-3 py-1.5 rounded-full hover:bg-white transition-colors">
                                         再生成
                                     </button>
-                                    <a href={generatedImageUrl} download="eyecatch.png" className="bg-[#41c9b4] text-white text-xs font-bold px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity flex items-center gap-1">
+                                    <a href={currentImageUrl} download="eyecatch.png" className="bg-[#41c9b4] text-white text-xs font-bold px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity flex items-center gap-1">
                                         <Download className="w-3 h-3" />
                                         保存
                                     </a>
                                 </div>
-                                {generatedImageModel && (
+                                {currentModel && (
                                     <div className="absolute bottom-2 right-2 bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded backdrop-blur-sm pointer-events-none opacity-60">
-                                        {generatedImageModel}
+                                        {currentModel}
                                     </div>
                                 )}
                             </>
