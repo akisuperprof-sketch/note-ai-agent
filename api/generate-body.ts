@@ -227,10 +227,12 @@ ${knowhow}
             let safeSubject = imagePrompt.replace(/photorealistic|realistic|4k|photo|photography|cinematic/gi, "");
             if (!safeSubject) safeSubject = selectedTitle;
 
+            // Sanitize and aggressively truncate to prevent URL errors (HTTP 414 / 400)
+            const cleanSubject = safeSubject.replace(/[\r\n]+/g, " ").slice(0, 100);
+            const cleanDescription = referenceDescription.replace(/[\r\n]+/g, " ").slice(0, 200);
+
             // スタイルの重みを最大化しつつ、具体的なタッチ（ベクター、フラット、太い線など）を強調
-            // descriptionが長すぎるとURLエラーになるため、500文字でカットする
-            const safeDescription = referenceDescription.slice(0, 500);
-            cleanMixPrompt = `(illustration, vector art, flat design:1.6), ${safeDescription}, ${safeSubject}, (thick outlines, bold lines:1.4), simple background, no photorealistic, no 3d rendering, no shading`;
+            cleanMixPrompt = `(illustration, vector art, flat design:1.6), ${cleanDescription}, ${cleanSubject}, (thick outlines, bold lines:1.4), simple background, no photorealistic, no 3d rendering, no shading`;
             console.log('Using reference-focused prompt (High Fidelity):', cleanMixPrompt);
         } else {
             // 参照画像なし：デフォルトのきれいな背景
