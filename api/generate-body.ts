@@ -57,16 +57,32 @@ export default defineEventHandler(async (event) => {
             referenceInstruction = `ユーザーは参照画像（キャラクターやスタイル）を提供しています。この画像の特徴（"${referenceDescription}"）を**必ず**維持し、それをベースにした画像プロンプトを作成してください。新しい要素を追加しても良いですが、元のスタイルやキャラクター性は崩さないでください。`;
         }
 
+        // Helper function to create safe Pollinations URL
+        const createPollinationsUrl = (prompt: string, refDesc: string, isEyecatch: boolean = false) => {
+            let safeSubject = prompt.replace(/photorealistic|realistic|4k|photo|photography|cinematic/gi, "");
+            if (!safeSubject) safeSubject = selectedTitle;
+
+            // Sanitize
+            const cleanSubject = safeSubject.replace(/[\r\n]+/g, " ").slice(0, 100);
+            const cleanDescription = refDesc.replace(/[\r\n]+/g, " ").slice(0, 300);
+
+            // Construct prompt
+            // Eyecatch: minimal, simple background
+            // Inline: character focused, action oriented
+            let mixPrompt = '';
+            if (isEyecatch) {
+                mixPrompt = `(illustration, vector art, flat design:1.6), ${cleanDescription}, ${cleanSubject}, (thick outlines, bold lines:1.4), simple background, no photorealistic, no 3d rendering, no shading`;
+            } else {
+                mixPrompt = `(illustration, vector art, flat design:1.6), ${cleanDescription}, ${cleanSubject}, (thick outlines, bold lines:1.4), white background, character focus, no text, no photorealistic, no 3d`;
+            }
+
+            const encodedPrompt = encodeURIComponent(mixPrompt);
+            const seed = Math.floor(Math.random() * 1000000);
+            return `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=flux`;
+        };
+
         const wordCount = settings?.wordCount || 2500;
-        // 出力形式:
-        // (ここにマークダウン形式の本文)
-        // [[SECTION_DIVIDER]]
-        // (ここにメタディスクリプション)
-        // [[SECTION_DIVIDER]]
-        // (ここにハッシュタグ)
-        // [[SECTION_DIVIDER]]
-        // (ここに画像生成用プロンプト [英語])
-        // `;
+
         const prompt = `
 あなたはプロのWebライター、そして熱狂的なファンを持つnoteクリエイターです。
 今回は「自分の内面を曝け出すような人間味」と「読者への深い共感」を武器に、読者の人生を少しでも前に進めるような力強い記事を書いてください。
@@ -115,10 +131,11 @@ ${knowhow}
 **【3-5. ツール名・固有名詞の扱い】**
 *   入力データにツール名（例: aquavoice, voicy, Obsidian など）が含まれている場合は、それらを必ず文脈の中で自然に使用し、具体的な活用法を示してください。
 
-12. **画像プロンプト**: ${referenceInstruction || ''} 記事のタイトル「${selectedTitle}」を表現する見出し画像のプロンプトを**英語で**作成してください。
-    *   **必須**: "minimalist, flat design, vector art, soft colors, high quality" のような、スタイルを表す英単語をカンマ区切りで列挙する形式にしてください。
-    *   **禁止**: 文章（Sentence）にしないこと。日本語を含めないこと。"text", "word", "letter", "typography" などの文字要素を一切含めないこと。
-    *   **構成**: [主題(Subject)], [スタイル(Style)], [背景(Background)] の順で、合計20単語以内で簡潔に記述してください。
+12. **画像プロンプト作成**:
+    *   **アイキャッチ**: 記事のタイトル「${selectedTitle}」を表現する画像のプロンプトを**英語で**作成。
+    *   **挿絵**: 記事内の各H2見出し（FAQやまとめを除く主要な章）の内容を表す挿絵のプロンプトを**英語で**作成。「H2見出し: プロンプト」の形式で1行ずつ記述。
+    *   **必須**: "minimalist, flat design, vector art, soft colors, high quality" のようなスタイル単語を含める。${referenceInstruction ? '参照画像の特徴を反映してください。' : ''}
+    *   **禁止**: 文章（Sentence）にしないこと。文字要素を含めないこと。
 
 出力形式:
 (ここにマークダウン形式の本文)
@@ -127,7 +144,9 @@ ${knowhow}
 [[SECTION_DIVIDER]]
 (ここにハッシュタグ)
 [[SECTION_DIVIDER]]
-(ここに画像生成用プロンプト [英語])
+(ここにアイキャッチ画像プロンプト [英語])
+[[SECTION_DIVIDER]]
+(ここに挿絵画像プロンプト [英語・各行])
 `;
 
         async function generateWithModel(modelName: string) {
@@ -173,111 +192,93 @@ ${knowhow}
 
         // 本文とメタディスクリプション、ハッシュタグ、画像プロンプトの分離
         const parts = text.split('[[SECTION_DIVIDER]]');
-        const markdown = parts[0].trim();
+        let markdown = parts[0].trim();
         let metaDescription = '';
         let hashtags: string[] = [];
-        let imagePrompt = '';
+        let eyecatchPrompt = '';
+        let inlinePromptsText = '';
 
-        if (parts.length >= 4) {
-            // Body --- Meta --- Hashtags --- ImagePrompt
+        if (parts.length >= 5) {
+            // Body --- Meta --- Hashtags --- Eyecatch --- Inline
             metaDescription = parts[1].trim();
             const tagsText = parts[2].trim();
             hashtags = tagsText.match(/#[^\s#]+/g) || [];
-            imagePrompt = parts[3].trim();
+            eyecatchPrompt = parts[3].trim();
+            inlinePromptsText = parts[4].trim();
+        } else if (parts.length >= 4) {
+            // Fallback for old prompt structure
+            metaDescription = parts[1].trim();
+            const tagsText = parts[2].trim();
+            hashtags = tagsText.match(/#[^\s#]+/g) || [];
+            eyecatchPrompt = parts[3].trim();
         } else if (parts.length === 3) {
-            // Body --- Meta --- Hashtags (fallback)
             metaDescription = parts[1].trim();
             const tagsText = parts[2].trim();
             hashtags = tagsText.match(/#[^\s#]+/g) || [];
         } else if (parts.length === 2) {
-            // Body --- Meta (fallback)
             metaDescription = parts[1].trim();
         }
 
 
-
-
-        // 画像生成用URL（Pollinations.aiを使用）
-        // 生成されたプロンプトがあればそれを使い、なければタイトルをフォールバックとして使う
-        // タイトルテキストを画像に埋め込むための特別なプロンプト構成
-        let basePrompt = imagePrompt || 'minimalist flat design illustration blog header soft colors';
-
-        // 参照画像の特徴があれば、それをプロンプトに追加して、スタイルやキャラクターを反映させる
-        if (referenceDescription) {
-            basePrompt = `${referenceDescription}, ${basePrompt}`;
-        }
-
-
-
-
-
-        // すべてのモデルで共通して「テキストを含まない、文字配置に適したクリーンな画像」を生成する戦略に変更
-        // これにより、AIによる日本語描画の文字化け（中華フォント化など）を完全に回避し、
-        // フロントエンド側で正しくタイトルをオーバーレイ表示（合成）する「コンポジット戦略」をとる
-
-
-
-        let cleanMixPrompt = '';
-        if (referenceDescription) {
-            // 参照画像あり：【再現度99%を目指す最強プロンプト構成】
-            // 1. ユーザーの期待（Subject）を維持しつつ
-            // 2. 参照画像のスタイル（Style）を強制適用する
-            // 3. 邪魔な「フォトリアル」「写真」要素を徹底排除するネガティブプロンプト的な構成を行う
-
-            let safeSubject = imagePrompt.replace(/photorealistic|realistic|4k|photo|photography|cinematic/gi, "");
-            if (!safeSubject) safeSubject = selectedTitle;
-
-            // Sanitize to prevent URL errors, but allow enough length for style
-            const cleanSubject = safeSubject.replace(/[\r\n]+/g, " ").slice(0, 100);
-            const cleanDescription = referenceDescription.replace(/[\r\n]+/g, " ").slice(0, 300);
-
-            // スタイルの重みを最大化: スタイル記述を最初に置く
-            cleanMixPrompt = `(illustration, vector art, flat design:1.6), ${cleanDescription}, ${cleanSubject}, (thick outlines, bold lines:1.4), simple background, no photorealistic, no 3d rendering, no shading`;
-            console.log('Using reference-focused prompt (High Fidelity):', cleanMixPrompt);
-        } else {
-            // 参照画像なし：デフォルトのきれいな背景
-            cleanMixPrompt = `${basePrompt}, minimalist, spacious, copy space, high quality, 8k, blog header background, no text, empty background`;
-        }
-
-        const encodedCleanPrompt = encodeURIComponent(cleanMixPrompt);
-
-        // ランダムなシードを追加して、キャッシュバスティングと毎回異なる画像を生成
-        const seed = Math.floor(Math.random() * 1000000);
-
-        // 画像生成モデルの優先順位設定
-        // Pollinationsで確実に動作し、高品質な 'flux' を最優先にする
-        // ユーザー指定の 'gemini' 系はPollinationsでは無効なため、品質重視でFluxを採用
-        const imageStrategies = [
-            { model: 'flux', type: 'pollinations' }, // 最高品質・安定
-            { model: 'turbo', type: 'pollinations' } // 高速・バックアップ
-        ];
-
+        // Generate Eyecatch URL
         let generatedImageUrl = '';
         let usedModel = '';
+        const eyecatchBasePrompt = eyecatchPrompt || 'minimalist flat design illustration blog header soft colors';
 
-        for (const strategy of imageStrategies) {
-            try {
-                console.log(`Trying image generation with model: ${strategy.model} (${strategy.type})`);
+        try {
+            generatedImageUrl = createPollinationsUrl(eyecatchBasePrompt, referenceDescription, true);
+            usedModel = 'flux (pollinations)';
+            console.log('Eyecatch URL generated:', generatedImageUrl);
+        } catch (e) {
+            console.error('Failed to generate eyecatch URL', e);
+        }
 
-                if (strategy.type === 'pollinations') {
-                    const modelParam = strategy.model;
-                    generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedCleanPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=${modelParam}`;
-                    usedModel = modelParam;
-                    console.log(`Using Pollinations URL with model: ${modelParam}`);
-                    break;
+
+        // Generate and Inject Inline Images
+        if (inlinePromptsText) {
+            console.log('Processing inline prompts...');
+            const lines = inlinePromptsText.split('\n');
+            for (const line of lines) {
+                // Format: "H2 Header: prompt..."
+                const match = line.match(/([^:]+):(.+)/);
+                if (match) {
+                    const headerKey = match[1].trim(); // Not strictly used for matching, simplistic injection below
+                    const promptPart = match[2].trim();
+
+                    if (promptPart && promptPart.length > 5) {
+                        const inlineUrl = createPollinationsUrl(promptPart, referenceDescription, false);
+
+                        // Simple strategy: Inject image after the first occurrence of the H2 header in markdown
+                        // Note: This is a loose match. Ideally we match exact H2 lines.
+                        // Let's try to find "## Header" and inject after
+                        // We don't have the exact H2 text from the prompt list, so we must rely on Gemini returning the header text.
+                        // Alternatively, we just inject after every `## ` section if we can map them.
+
+                        // More robust approach:
+                        // Iterate through actual H2s in markdown and try to match with the prompt list.
+                        // But names might slightly differ.
+
+                        // Let's try strict find and replace if the AI followed instructions "H2見出し: プロンプト"
+                        // The AI might return "## 導入: prompt" or just "導入: prompt"
+
+                        let targetHeader = headerKey.replace(/^##\s*/, '').replace(/H2\s*/i, '');
+
+                        // Create regex to match "## targetHeader"
+                        // Escape special chars in targetHeader just in case
+                        const escapedHeader = targetHeader.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const regex = new RegExp(`(##\\s*${escapedHeader}[^\\n]*)`, 'i');
+
+                        if (markdown.match(regex)) {
+                            markdown = markdown.replace(regex, `$1\n\n![${targetHeader}](${inlineUrl})\n`);
+                            console.log(`Injected inline image for: ${targetHeader}`);
+                        }
+                    }
                 }
-                // Google type implementation pending, removed to avoid fallback hell
-            } catch (e) {
-                console.warn(`Strategy failed: ${strategy.model}`);
-                continue;
             }
         }
 
-        // 全て失敗した場合の最終フォールバック
-        if (!generatedImageUrl) {
-            generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedCleanPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=flux`;
-            usedModel = 'flux (fallback)';
-        }
+        // Fallback: If no inline prompts were generated/injected, simplistic injection
+        // (Skipped to avoid clutter if AI failed)
 
         return {
             success: true,
