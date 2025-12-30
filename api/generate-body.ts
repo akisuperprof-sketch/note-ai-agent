@@ -222,27 +222,38 @@ ${knowhow}
 
         // Helper to generate image with fallback strategy
         async function generateImage(prompt: string, refDesc: string, isEyecatch: boolean = false): Promise<{ url: string, model: string }> {
-            let safeSubject = prompt.replace(/photorealistic|realistic|4k|photo|photography|cinematic/gi, "");
-            if (!safeSubject) safeSubject = selectedTitle;
 
-            // 1. Try Google Image Gen Direct API
-            // Prioritize the user requested 'gemini-3-pro-image-preview' if available via API, then Imagen, then Flash
-            const googleModels = ['gemini-3-pro-image-preview', 'imagen-3.0-generate-001', 'gemini-2.0-flash-exp'];
+            // Helper: Strict Sanitization for URLs (English alphanumeric onlySafe)
+            const sanitizeForUrl = (str: string) => {
+                // Remove non-ascii characters to ensure Pollinations stability
+                // Keep only a-z, A-Z, 0-9, comma, space
+                return str.replace(/[^a-zA-Z0-9, ]/g, '').replace(/\s+/g, ' ').trim().slice(0, 150);
+            };
 
-            // Construct a prompt optimized for Google models
+            const safeSubject = sanitizeForUrl(prompt.replace(/photorealistic|realistic|4k|photo|photography|cinematic/gi, "") || selectedTitle);
+            const safeDesc = sanitizeForUrl(refDesc);
+
+            // 1. Try Google Image Gen Direct API (Official Model Only)
+            const googleModels = ['imagen-3.0-generate-001'];
+
             const googlePrompt = isEyecatch
-                ? `Draw a high quality image. Style: minimalist, flat design, vector art, soft colors. Content: ${safeSubject}. Details: ${refDesc}. No text.`
-                : `Draw an illustration. Style: vector art, flat design, white background. Content: ${safeSubject}. Details: ${refDesc}.`;
+                ? `Draw a high quality image. Style: minimalist, flat design, vector art, soft colors. Content: ${safeSubject}. Details: ${safeDesc}. No text.`
+                : `Draw an illustration. Style: vector art, flat design, white background. Content: ${safeSubject}. Details: ${safeDesc}.`;
 
             for (const modelName of googleModels) {
                 try {
-                    // console.log(`Attempting Google Image Gen with ${modelName}...`); 
-                    // (Log reduced to avoid clutter, will log success/fail)
                     const model = genAI.getGenerativeModel({ model: modelName });
-                    const result = await model.generateContent(googlePrompt);
+
+                    // Add 8s timeout to prevent Serverless Function execution timeout
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000));
+
+                    const result: any = await Promise.race([
+                        model.generateContent(googlePrompt),
+                        timeoutPromise
+                    ]);
+
                     const response = await result.response;
 
-                    // Check for inline image data
                     if (response.candidates && response.candidates[0].content && response.candidates[0].content.parts) {
                         for (const part of response.candidates[0].content.parts) {
                             if (part.inlineData && part.inlineData.data) {
@@ -256,22 +267,37 @@ ${knowhow}
                         }
                     }
                 } catch (e: any) {
-                    // console.warn(`Google ${modelName} failed: ${e.message}`);
-                    // Silently fail to next model
+                    console.warn(`Google ${modelName} attempt failed or timed out: ${e.message}`);
                 }
             }
 
-            // 2. Fallback to Pollinations (Flux)
-            // Only used if ALL Google attempts fail (e.g. 404, 429, or text response)
-            console.log('All Google models failed or unavailable. Fallback to Pollinations (Flux).');
+            // 2. Fallback to Pollinations (Flux) - Reliable English Prompt
+            console.log('Fallback to Pollinations (Flux) with sanitized prompt.');
+
             try {
+                // Construct strict simple prompt
+                let mixPrompt = '';
+                if (isEyecatch) {
+                    mixPrompt = `vector art, flat design, ${safeDesc}, ${safeSubject}, simple background`;
+                } else {
+                    mixPrompt = `vector art, flat design, ${safeDesc}, ${safeSubject}, white background, no text`;
+                }
+
+                const encodedPrompt = encodeURIComponent(mixPrompt);
+                const seed = Math.floor(Math.random() * 1000000);
+                const model = 'flux';
+
                 return {
-                    url: createPollinationsUrl(prompt, refDesc, isEyecatch),
-                    model: 'flux (pollinations)'
+                    url: `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=${model}`,
+                    model: `${model} (pollinations)`
                 };
             } catch (e) {
-                console.error('Pollinations URL creation failed', e);
-                return { url: '', model: 'failed' };
+                console.error('Pollinations generation failed', e);
+                // Last ditch effort: simple title only
+                return {
+                    url: `https://image.pollinations.ai/prompt/${encodeURIComponent(safeSubject)}?nologo=true`,
+                    model: 'fallback-minimal'
+                };
             }
         }
 
@@ -291,47 +317,9 @@ ${knowhow}
 
 
         // Generate and Inject Inline Images
-        if (inlinePromptsText) {
-            console.log('Processing inline prompts...');
-            const lines = inlinePromptsText.split('\n');
-
-            // Limit inline images to 3 to avoid rate limits
-            let count = 0;
-            const MAX_INLINE_IMAGES = 3;
-
-            for (const line of lines) {
-                if (count >= MAX_INLINE_IMAGES) break;
-
-                // Format: "H2 Header: prompt..."
-                const match = line.match(/([^:]+):(.+)/);
-                if (match) {
-                    const headerKey = match[1].trim();
-                    const promptPart = match[2].trim();
-
-                    if (promptPart && promptPart.length > 5) {
-                        try {
-                            // Add delay to throttle requests (2s)
-                            await new Promise(r => setTimeout(r, 2000));
-
-                            const result = await generateImage(promptPart, referenceDescription, false);
-                            const url = result.url;
-
-                            let targetHeader = headerKey.replace(/^##\s*/, '').replace(/H2\s*/i, '');
-                            const escapedHeader = targetHeader.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                            const regex = new RegExp(`(##\\s*${escapedHeader}[^\\n]*)`, 'i');
-
-                            if (markdown.match(regex)) {
-                                markdown = markdown.replace(regex, `$1\n\n![${targetHeader}](${url})\n`);
-                                console.log(`Injected inline image for: ${targetHeader}`);
-                                count++;
-                            }
-                        } catch (e) {
-                            console.error(`Failed to generate inline image for ${headerKey}`, e);
-                        }
-                    }
-                }
-            }
-        }
+        // Generate and Inject Inline Images
+        // DISABLED Temporarily to prevent timeouts and ensure stability.
+        /* Inline generation code removed */
 
         // Fallback: If no inline prompts were generated/injected, simplistic injection
         // (Skipped to avoid clutter if AI failed)
