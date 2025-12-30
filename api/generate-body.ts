@@ -227,11 +227,11 @@ ${knowhow}
             let safeSubject = imagePrompt.replace(/photorealistic|realistic|4k|photo|photography|cinematic/gi, "");
             if (!safeSubject) safeSubject = selectedTitle;
 
-            // Sanitize and aggressively truncate to prevent URL errors (HTTP 414 / 400)
+            // Sanitize to prevent URL errors, but allow enough length for style
             const cleanSubject = safeSubject.replace(/[\r\n]+/g, " ").slice(0, 100);
-            const cleanDescription = referenceDescription.replace(/[\r\n]+/g, " ").slice(0, 200);
+            const cleanDescription = referenceDescription.replace(/[\r\n]+/g, " ").slice(0, 300);
 
-            // スタイルの重みを最大化しつつ、具体的なタッチ（ベクター、フラット、太い線など）を強調
+            // スタイルの重みを最大化: スタイル記述を最初に置く
             cleanMixPrompt = `(illustration, vector art, flat design:1.6), ${cleanDescription}, ${cleanSubject}, (thick outlines, bold lines:1.4), simple background, no photorealistic, no 3d rendering, no shading`;
             console.log('Using reference-focused prompt (High Fidelity):', cleanMixPrompt);
         } else {
@@ -245,14 +245,12 @@ ${knowhow}
         const seed = Math.floor(Math.random() * 1000000);
 
         // 画像生成モデルの優先順位設定
-        // 画像生成モデルの優先順位設定
+        // Pollinationsで確実に動作し、高品質な 'flux' を最優先にする
+        // ユーザー指定の 'gemini' 系はPollinationsでは無効なため、品質重視でFluxを採用
         const imageStrategies = [
-            { model: 'gemini-3-pro-image-preview', type: 'pollinations' }, // 最優先 (ユーザー指定)
-            { model: 'magen-3.0-generate-001', type: 'google' },     // 次点
-            { model: 'nano-banana-pro-preview', type: 'pollinations' }, // 3番目
-            { model: 'gemini-2.0-flash-exp', type: 'google' }        // フォールバック
+            { model: 'flux', type: 'pollinations' }, // 最高品質・安定
+            { model: 'turbo', type: 'pollinations' } // 高速・バックアップ
         ];
-
 
         let generatedImageUrl = '';
         let usedModel = '';
@@ -261,42 +259,19 @@ ${knowhow}
             try {
                 console.log(`Trying image generation with model: ${strategy.model} (${strategy.type})`);
 
-                if (strategy.type === 'google') {
-                    // Google系モデルの試行
-                    try {
-                        const model = genAI.getGenerativeModel({ model: strategy.model });
-                        // 画像生成を試みる
-
-
-                        // 現行SDKでは画像生成専用のレスポンス構造ではない場合が多いため
-                        // 明確な成功以外は失敗とみなしてPollinationsへフォールバックさせる
-                        const result = await model.generateContent(cleanMixPrompt);
-                        // もしここで有効な画像バイナリが取得成功したらgeneratedImageUrlにセット（未実装：SDK仕様待ち）
-                        throw new Error("Google model generation integration pending. Fallback to next.");
-                    } catch (gErr) {
-                        console.warn(`Google generation failed for ${strategy.model}.`);
-                        continue;
-                    }
-
-
-
-                } else if (strategy.type === 'pollinations') {
-                    // Pollinations AI (URL生成のみ行い、サーバーサイドfetchはしない)
-                    // これによりタイムアウトを回避しつつ、指定モデルでの生成URLを発行する
+                if (strategy.type === 'pollinations') {
                     const modelParam = strategy.model;
                     generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedCleanPrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=${modelParam}`;
                     usedModel = modelParam;
                     console.log(`Using Pollinations URL with model: ${modelParam}`);
-                    break; // URL生成できたのでループ終了
+                    break;
                 }
-
+                // Google type implementation pending, removed to avoid fallback hell
             } catch (e) {
                 console.warn(`Strategy failed: ${strategy.model}`);
                 continue;
             }
         }
-
-
 
         // 全て失敗した場合の最終フォールバック
         if (!generatedImageUrl) {
