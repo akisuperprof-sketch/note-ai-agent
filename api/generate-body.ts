@@ -225,28 +225,28 @@ ${knowhow}
             let safeSubject = prompt.replace(/photorealistic|realistic|4k|photo|photography|cinematic/gi, "");
             if (!safeSubject) safeSubject = selectedTitle;
 
-            // 1. Try Google Image Gen (Gemini 2.0 Flash Exp or Imagen)
-            // User requested 'gemini-3-pro-image-preview', mapping to best available Google model
-            const googleModels = ['imagen-3.0-generate-001', 'gemini-2.0-flash-exp'];
+            // 1. Try Google Image Gen Direct API
+            // Prioritize the user requested 'gemini-3-pro-image-preview' if available via API, then Imagen, then Flash
+            const googleModels = ['gemini-3-pro-image-preview', 'imagen-3.0-generate-001', 'gemini-2.0-flash-exp'];
 
-            // Construct a prompt optimized for Google models (more descriptive is fine)
+            // Construct a prompt optimized for Google models
             const googlePrompt = isEyecatch
                 ? `Draw a high quality image. Style: minimalist, flat design, vector art, soft colors. Content: ${safeSubject}. Details: ${refDesc}. No text.`
                 : `Draw an illustration. Style: vector art, flat design, white background. Content: ${safeSubject}. Details: ${refDesc}.`;
 
             for (const modelName of googleModels) {
                 try {
-                    console.log(`Attempting Google Image Gen with ${modelName}...`);
+                    // console.log(`Attempting Google Image Gen with ${modelName}...`); 
+                    // (Log reduced to avoid clutter, will log success/fail)
                     const model = genAI.getGenerativeModel({ model: modelName });
                     const result = await model.generateContent(googlePrompt);
                     const response = await result.response;
 
                     // Check for inline image data
-                    // Note: This relies on the specific response structure for image gen
                     if (response.candidates && response.candidates[0].content && response.candidates[0].content.parts) {
                         for (const part of response.candidates[0].content.parts) {
                             if (part.inlineData && part.inlineData.data) {
-                                console.log(`Google Image Gen Success (${modelName})`);
+                                console.log(`Google Direct API Success (${modelName})`);
                                 const mime = part.inlineData.mimeType || 'image/png';
                                 return {
                                     url: `data:${mime};base64,${part.inlineData.data}`,
@@ -256,12 +256,14 @@ ${knowhow}
                         }
                     }
                 } catch (e: any) {
-                    console.warn(`Google Image Gen failed for ${modelName}: ${e.message}`);
+                    // console.warn(`Google ${modelName} failed: ${e.message}`);
+                    // Silently fail to next model
                 }
             }
 
             // 2. Fallback to Pollinations (Flux)
-            console.log('Falling back to Pollinations (Flux)...');
+            // Only used if ALL Google attempts fail (e.g. 404, 429, or text response)
+            console.log('All Google models failed or unavailable. Fallback to Pollinations (Flux).');
             try {
                 return {
                     url: createPollinationsUrl(prompt, refDesc, isEyecatch),
@@ -292,9 +294,14 @@ ${knowhow}
         if (inlinePromptsText) {
             console.log('Processing inline prompts...');
             const lines = inlinePromptsText.split('\n');
-            const inlineImagePromises = [];
+
+            // Limit inline images to 3 to avoid rate limits
+            let count = 0;
+            const MAX_INLINE_IMAGES = 3;
 
             for (const line of lines) {
+                if (count >= MAX_INLINE_IMAGES) break;
+
                 // Format: "H2 Header: prompt..."
                 const match = line.match(/([^:]+):(.+)/);
                 if (match) {
@@ -302,35 +309,26 @@ ${knowhow}
                     const promptPart = match[2].trim();
 
                     if (promptPart && promptPart.length > 5) {
-                        // Push promise to array
-                        inlineImagePromises.push((async () => {
-                            try {
-                                const result = await generateImage(promptPart, referenceDescription, false);
-                                return { headerKey, url: result.url };
-                            } catch (e) {
-                                console.error(`Failed to generate inline image for ${headerKey}`, e);
-                                return null;
+                        try {
+                            // Add delay to throttle requests (2s)
+                            await new Promise(r => setTimeout(r, 2000));
+
+                            const result = await generateImage(promptPart, referenceDescription, false);
+                            const url = result.url;
+
+                            let targetHeader = headerKey.replace(/^##\s*/, '').replace(/H2\s*/i, '');
+                            const escapedHeader = targetHeader.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                            const regex = new RegExp(`(##\\s*${escapedHeader}[^\\n]*)`, 'i');
+
+                            if (markdown.match(regex)) {
+                                markdown = markdown.replace(regex, `$1\n\n![${targetHeader}](${url})\n`);
+                                console.log(`Injected inline image for: ${targetHeader}`);
+                                count++;
                             }
-                        })());
+                        } catch (e) {
+                            console.error(`Failed to generate inline image for ${headerKey}`, e);
+                        }
                     }
-                }
-            }
-
-            // Wait for all images
-            const results = await Promise.all(inlineImagePromises);
-
-            // Inject successfully generated images
-            for (const res of results) {
-                if (!res) continue;
-
-                const { headerKey, url } = res;
-                let targetHeader = headerKey.replace(/^##\s*/, '').replace(/H2\s*/i, '');
-                const escapedHeader = targetHeader.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const regex = new RegExp(`(##\\s*${escapedHeader}[^\\n]*)`, 'i');
-
-                if (markdown.match(regex)) {
-                    markdown = markdown.replace(regex, `$1\n\n![${targetHeader}](${url})\n`);
-                    console.log(`Injected inline image for: ${targetHeader}`);
                 }
             }
         }
